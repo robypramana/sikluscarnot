@@ -1,0 +1,67 @@
+/* Offline Font Fallbacks - Nunito, Space Grotesk, JetBrains Mono */
+/* Using system font stack that closely matches the original fonts */
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Nunito'), local('Nunito-Regular'), 
+       local('Arial Rounded MT Bold'),
+       local('Trebuchet MS');
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Nunito SemiBold'), local('Nunito-SemiBold'),
+       local('Trebuchet MS');
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Nunito Bold'), local('Nunito-Bold'),
+       local('Trebuchet MS Bold');
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 800;
+  src: local('Nunito ExtraBold'), local('Nunito-ExtraBold'),
+       local('Trebuchet MS Bold');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Space Grotesk'), local('SpaceGrotesk-Medium'),
+       local('Segoe UI Semibold'), local('Helvetica Neue Medium');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Space Grotesk Bold'), local('SpaceGrotesk-Bold'),
+       local('Segoe UI Bold'), local('Helvetica Neue Bold');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 800;
+  src: local('Space Grotesk ExtraBold'), local('SpaceGrotesk-Bold'),
+       local('Segoe UI Bold'), local('Helvetica Neue Bold');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('JetBrains Mono'), local('JetBrainsMono-Regular'),
+       local('Consolas'), local('Courier New');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  src: local('JetBrains Mono Medium'), local('JetBrainsMono-Medium'),
+       local('Consolas'), local('Courier New');
+}
