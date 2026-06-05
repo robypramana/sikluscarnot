@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Lab Virtual Fisika Siklus Carnot - Versi Offline">
+<title>Lab Virtual – Siklus Carnot (Offline)</title>
+<link href="assets/fonts/fonts.css" rel="stylesheet">
+<script src="assets/js/xlsx.full.min.js"></script>
+<script src="assets/js/jspdf.umd.min.js"></script>
+<script src="assets/js/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bg:#fce4ec;
+  --surf:#fff0f5;--surf2:#fde8ef;--surf3:#fdd6e6;
+  --border:#f4a7c0;--border2:#e8729a;
+  --hot:#c0003c;--hot2:#d63060;--hot3:#8b0027;
+  --cold:#0055c0;--cold2:#1a6fd4;--cold3:#003a8a;
+  --work:#007040;--work2:#1a8a55;--work3:#004d2c;
+  --gold:#b06000;--gold2:#c87800;
+  --acc:#9c1a50;--acc2:#b52060;--acc3:#6a0033;
+  --text:#2d0018;--text2:#5c1035;--text3:#8a4060;
+  --h:52px;--fbase:14px;
+}
+@media(max-width:768px){:root{--fbase:13px;--h:46px;}}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;}
+body{font-family:"Nunito",sans-serif;background:#1a0010;color:var(--text);display:flex;align-items:center;justify-content:center;}
+#wrapper-169::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 5%,rgba(220,100,140,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 90% 90%,rgba(100,150,220,.08) 0%,transparent 55%),
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(180,80,120,.04) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(180,80,120,.04) 40px);
+}
+
+/* ==== AUDIO HIDDEN ==== */
+audio{display:none;}
+
+/* ==== LOADING ==== */
+#loadScreen{position:absolute;inset:0;z-index:99999;
+  background:linear-gradient(145deg,#3a0020 0%,#7a1040 45%,#a02050 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .7s ease;}
+#loadScreen.hide{opacity:0;pointer-events:none;}
+.load-logo{width:clamp(64px,8vw,88px);margin-bottom:12px;border-radius:14px;
+  box-shadow:0 8px 28px rgba(180,40,80,.5);animation:pulseLogo 2s ease-in-out infinite;}
+@keyframes pulseLogo{0%,100%{box-shadow:0 8px 28px rgba(180,40,80,.5);}50%{box-shadow:0 8px 40px rgba(220,80,120,.8);}}
+.load-brand{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.load-brand-logo{width:44px;height:44px;border-radius:10px;background:#fff;padding:3px;box-shadow:0 4px 12px rgba(0,0,0,.3);}
+.load-brand-name{font-family:"Space Grotesk",sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:.05em;}
+.load-title{font-family:"Space Grotesk",sans-serif;font-size:clamp(18px,2.5vw,28px);font-weight:800;color:#fff;text-align:center;margin-bottom:4px;}
+.load-title span{color:#ffb3cc;}
+.load-sub{font-family:"JetBrains Mono",monospace;font-size:clamp(9px,1.1vw,11px);color:#ffb3cc;letter-spacing:.2em;text-transform:uppercase;text-align:center;margin-bottom:24px;}
+.load-bar-wrap{width:clamp(200px,28vw,340px);height:6px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden;margin-bottom:7px;}
+.load-bar-slide{height:100%;width:0%;background:linear-gradient(90deg,#ff6090,#ffaac0,#ff6090);border-radius:6px;transition:width .08s linear;}
+.load-percent{font-family:"JetBrains Mono",monospace;font-size:clamp(12px,1.4vw,15px);color:#fff;font-weight:700;margin-bottom:8px;text-align:center;}
+.load-status{font-size:clamp(10px,1vw,12px);color:#ffb3cc;font-family:"Nunito",sans-serif;margin-bottom:28px;min-height:16px;text-align:center;}
+#btnMulai{display:none;background:linear-gradient(135deg,#c0003c,#e0305a);color:#fff;border:none;border-radius:12px;
+  padding:12px 32px;font-family:"Space Grotesk",sans-serif;font-size:clamp(13px,1.4vw,16px);font-weight:700;
+  cursor:pointer;letter-spacing:.04em;box-shadow:0 4px 20px rgba(200,0,60,.5);
+  animation:btnPop .4s cubic-bezier(.34,1.56,.64,1) forwards;transition:transform .18s,box-shadow .18s;}
+#btnMulai:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 10px 30px rgba(200,0,60,.7);}
+@keyframes btnPop{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+
+/* ==== HEADER ==== */
+header{position:relative;z-index:10;height:var(--h);flex-shrink:0;
+  background:linear-gradient(135deg,#6a0033,#a02050);
+  border-bottom:2px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;padding:0 14px;gap:10px;
+  box-shadow:0 2px 16px rgba(160,0,60,.3);}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.logo-icon img{width:100%;height:100%;object-fit:contain;}
+.logo-text{font-family:"Space Grotesk",sans-serif;font-size:18px;font-weight:800;color:#fff;line-height:1.1;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.7);letter-spacing:.04em;}
+.rm-brand{display:flex;align-items:center;gap:5px;margin-left:4px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);}
+.rm-brand img{width:20px;height:20px;border-radius:4px;}
+.rm-brand span{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:700;color:#ffe0ee;letter-spacing:.05em;}
+nav{display:flex;gap:2px;flex:1;overflow-x:auto;justify-content:flex-end;}
+nav::-webkit-scrollbar{display:none;}
+.nb{position:relative;background:none;border:none;color:rgba(255,255,255,.72);cursor:pointer;
+  font-family:"Nunito",sans-serif;font-size:clamp(11px,1.2vw,13px);font-weight:700;
+  padding:0 11px;height:var(--h);white-space:nowrap;transition:color .2s;}
+.nb::after{content:"";position:absolute;bottom:0;left:8px;right:8px;height:3px;
+  background:#ffb3cc;transform:scaleX(0);transition:transform .2s;border-radius:3px 3px 0 0;}
+.nb:hover{color:#fff;}
+.nb.active{color:#fff;}
+.nb.active::after{transform:scaleX(1);}
+#menuToggle{display:none;background:none;border:none;cursor:pointer;padding:6px;color:#fff;flex-shrink:0;}
+@media(max-width:700px){
+  .logo-sub,.rm-brand{display:none;}
+  .logo-text{font-size:15px;}
+  #menuToggle{display:flex;align-items:center;margin-left:auto;}
+  nav{display:none;flex-direction:column;position:fixed;top:var(--h);right:0;left:0;
+    z-index:999;background:#7a1040;border-bottom:1px solid rgba(255,255,255,.2);
+    box-shadow:0 8px 24px rgba(0,0,0,.3);gap:0;flex:none;}
+  nav.open{display:flex;}
+  .nb{height:48px;width:100%;text-align:left;padding:0 18px;font-size:14px;
+    display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,.08);}
+  .nb::after{display:none;}
+  .nb.active{background:rgba(255,255,255,.12);}
+}
+
+/* ==== APP ==== */
+#app{position:relative;z-index:1;flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.page{display:none;flex:1;overflow:hidden;min-height:0;}
+.page.active{display:flex;flex-direction:column;}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.page.active{animation:fu .22s ease;}
+.scroll{flex:1;overflow-y:auto;padding:10px 14px 14px;}
+.scroll::-webkit-scrollbar{width:4px;}
+.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ==== HERO ==== */
+.hero{background:linear-gradient(135deg,#7a1040,#a02050);
+  border:1px solid rgba(255,255,255,.2);border-radius:10px;
+  padding:10px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px;
+  position:relative;overflow:hidden;flex-shrink:0;box-shadow:0 4px 20px rgba(160,0,60,.2);}
+.hero::after{content:"🔥";position:absolute;right:14px;top:-6px;font-size:60px;opacity:.15;pointer-events:none;}
+.h-label{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.18em;color:#ffe0ee;text-transform:uppercase;margin-bottom:2px;}
+.h-title{font-family:"Space Grotesk",sans-serif;font-size:clamp(13px,1.9vw,18px);font-weight:800;color:#fff;line-height:1.2;}
+.h-title span{color:#ffb3cc;}
+.h-desc{font-size:10.5px;color:#ffe0ee;line-height:1.5;max-width:500px;}
+
+/* ==== CARDS ==== */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:11px 13px;margin-bottom:7px;transition:border-color .2s,box-shadow .2s;
+  box-shadow:0 1px 4px rgba(160,0,60,.08);}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 14px rgba(160,0,60,.12);}
+.ch{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.ci{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.ci.r{background:rgba(192,0,60,.12);}.ci.b{background:rgba(0,80,192,.12);}
+.ci.g{background:rgba(0,112,64,.10);}.ci.o{background:rgba(180,80,0,.12);}
+.ci.y{background:rgba(180,100,0,.12);}.ci.p{background:rgba(120,0,100,.1);}
+.ct{font-family:"Space Grotesk",sans-serif;font-size:clamp(12px,1.4vw,14px);font-weight:700;color:var(--acc);}
+.card p{font-size:clamp(11px,1.2vw,13px);line-height:1.7;color:var(--text2);margin-bottom:5px;}
+.card p:last-child{margin-bottom:0;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+
+/* ==== FRACTION (pecahan) ==== */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:0.95em;line-height:1;margin:0 2px;}
+.frac .num{border-bottom:1.5px solid currentColor;padding:0 2px 1px;font-size:0.92em;text-align:center;}
+.frac .den{padding:1px 2px 0;font-size:0.92em;text-align:center;}
+.formula-box{font-family:"JetBrains Mono",monospace;font-size:12px;
+  background:rgba(156,26,80,.07);border-left:4px solid var(--acc);
+  padding:8px 13px;border-radius:0 7px 7px 0;color:var(--acc);margin:7px 0;font-weight:600;line-height:1.6;}
+.formula-box.hot{background:rgba(192,0,60,.08);border-color:var(--hot);color:var(--hot);}
+.formula-box.cold{background:rgba(0,80,192,.08);border-color:var(--cold);color:var(--cold);}
+.formula-box.work{background:rgba(0,112,64,.07);border-color:var(--work);color:var(--work);}
+.formula-box.gold{background:rgba(180,100,0,.08);border-color:var(--gold);color:var(--gold);}
+
+/* ==== CHIPS ==== */
+.chips{display:flex;gap:5px;margin:5px 0;flex-wrap:wrap;}
+.chip{border-radius:6px;padding:3px 9px;font-size:clamp(10px,1vw,12px);font-weight:600;}
+.chip-r{background:rgba(192,0,60,.1);border:1px solid rgba(192,0,60,.25);color:var(--hot);}
+.chip-b{background:rgba(0,80,192,.1);border:1px solid rgba(0,80,192,.22);color:var(--cold);}
+.chip-g{background:rgba(0,112,64,.08);border:1px solid rgba(0,112,64,.2);color:var(--work);}
+.chip-y{background:rgba(180,100,0,.08);border:1px solid rgba(180,100,0,.2);color:var(--gold);}
+
+/* ==== OLIST ==== */
+.olist{list-style:none;}
+.olist li{display:flex;align-items:flex-start;gap:7px;font-size:clamp(11px,1.2vw,13px);
+  color:var(--text2);line-height:1.65;padding:4px 0;border-bottom:1px solid var(--border);}
+.olist li:last-child{border-bottom:none;}
+.olist li::before{content:"›";color:var(--acc2);font-weight:800;font-size:16px;margin-top:-1px;}
+
+/* ==== STEPS ==== */
+.steps{display:flex;flex-direction:column;gap:5px;}
+.step{display:flex;gap:10px;align-items:flex-start;background:var(--surf2);
+  border:1px solid var(--border);border-radius:8px;padding:7px 10px;transition:border-color .17s;}
+.step:hover{border-color:var(--acc2);background:var(--surf3);}
+.snum{min-width:20px;height:20px;border-radius:50%;background:rgba(156,26,80,.15);
+  border:1px solid rgba(156,26,80,.3);display:flex;align-items:center;justify-content:center;
+  font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--acc);flex-shrink:0;}
+.step p{font-size:clamp(11px,1.2vw,13px);color:var(--text2);line-height:1.6;margin:0;}
+.notebox{background:rgba(255,200,50,.08);border:1px solid rgba(200,130,0,.2);border-radius:8px;padding:8px 12px;margin-top:7px;}
+.notebox .nt{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.notebox p{font-size:clamp(11px,1.1vw,12.5px);color:var(--text2);line-height:1.6;margin:0;}
+
+/* ==== DRAG DROP ==== */
+.drag-card{background:var(--surf);border:1.5px solid var(--border);border-radius:10px;
+  padding:9px 7px;text-align:center;cursor:grab;
+  transition:transform .15s,box-shadow .15s,border-color .15s,opacity .2s;
+  user-select:none;position:relative;min-height:78px;touch-action:none;}
+.drag-card:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(160,0,60,.15);border-color:var(--border2);}
+.drag-card:active{cursor:grabbing;transform:scale(.96);}
+.drag-card.alat{background:rgba(192,0,60,.06);border-color:rgba(192,0,60,.2);}
+.drag-card.bahan{background:rgba(0,80,192,.06);border-color:rgba(0,80,192,.2);}
+.drag-card.dragging{opacity:.3;transform:scale(.95);filter:grayscale(.5);}
+.drag-card.placed{opacity:.45;cursor:not-allowed;filter:grayscale(.4);}
+.drag-icon{height:38px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:26px;}
+.drag-name{font-size:10.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:2px;}
+.drag-sub{font-size:9px;color:var(--text3);}
+.drag-card.touch-grabbing{transform:scale(1.06);box-shadow:0 8px 24px rgba(160,0,60,.2);border-color:var(--acc);z-index:10;}
+.drop-zone{border:2px dashed var(--border2);border-radius:9px;padding:8px;
+  display:flex;flex-wrap:wrap;gap:7px;align-content:flex-start;
+  transition:background .2s,border-color .2s;position:relative;min-height:50px;}
+.drop-zone.drag-over{background:rgba(156,26,80,.06);border-color:var(--acc2);}
+.drop-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--text3);pointer-events:none;font-style:italic;}
+
+/* ==== SIMULASI ==== */
+.ctrl-panel{background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:10px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;}
+.ctrl-panel h3{font-family:"Space Grotesk",sans-serif;font-size:11.5px;font-weight:700;color:var(--acc);}
+.cg label{display:block;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+.sim-right{display:flex;flex-direction:column;gap:7px;overflow:hidden;}
+.canvas-wrap{background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:8px;flex:1;min-height:0;display:flex;flex-direction:column;}
+.canvas-wrap h3{font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:700;color:var(--acc);margin-bottom:5px;flex-shrink:0;}
+#simCanvas{border-radius:7px;display:block;background:#fff8fc;border:1px solid var(--border);}
+#pvCanvas{border-radius:7px;display:block;background:#fff8fc;border:1px solid var(--border);}
+.statsrow{display:flex;gap:5px;flex-shrink:0;margin-top:5px;}
+.sbox{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:7px;padding:6px;text-align:center;}
+.sv{font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:700;display:block;}
+.sv.hot{color:var(--hot);}.sv.cold{color:var(--cold);}.sv.work{color:var(--work);}.sv.gold{color:var(--gold);}
+.sl{font-size:11px;font-weight:800;color:var(--text2);letter-spacing:.06em;}
+.select-ctrl{width:100%;background:var(--surf);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);padding:5px 24px 5px 8px;
+  font-family:"Nunito",sans-serif;font-size:11px;outline:none;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%239c1a50' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 7px center;}
+.select-ctrl:focus{border-color:var(--acc);}
+.btn{width:100%;border:none;border-radius:7px;padding:7px;font-family:"Nunito",sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .17s;}
+.btn-start{background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;box-shadow:0 2px 8px rgba(192,0,60,.25);}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(192,0,60,.35);}
+.btn-reset{background:var(--surf2);border:1px solid var(--border);color:var(--text2);}
+.btn-reset:hover{border-color:var(--acc);color:var(--acc);}
+.btn-sound-on{background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;}
+.btn-sound-off{background:var(--surf2);border:1px solid var(--border);color:var(--text3);}
+input[type="range"]{width:100%;height:4px;background:var(--border);border-radius:4px;appearance:none;outline:none;cursor:pointer;}
+input[type="range"]::-webkit-slider-thumb{appearance:none;width:13px;height:13px;background:var(--acc2);cursor:pointer;border-radius:50%;border:2px solid var(--bg);}
+
+/* ==== PHASE BADGE ==== */
+.phase-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.05em;}
+.phase-1{background:rgba(192,0,60,.12);color:var(--hot);border:1px solid rgba(192,0,60,.25);}
+.phase-2{background:rgba(180,100,0,.1);color:var(--gold);border:1px solid rgba(180,100,0,.22);}
+.phase-3{background:rgba(0,80,192,.1);color:var(--cold);border:1px solid rgba(0,80,192,.22);}
+.phase-4{background:rgba(0,112,64,.08);color:var(--work);border:1px solid rgba(0,112,64,.18);}
+
+/* ==== QUIZ ==== */
+.quiz-nav-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;
+  padding:10px 14px;background:linear-gradient(135deg,#7a1040,#a02050);
+  border:1px solid rgba(255,255,255,.2);border-radius:12px;margin-bottom:10px;flex-shrink:0;}
+.qprog{display:flex;gap:4px;flex-wrap:wrap;}
+.qprog-dot{width:30px;height:30px;border-radius:7px;border:2px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);font-size:11px;font-weight:700;color:rgba(255,255,255,.6);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .17s;}
+.qprog-dot:hover{background:rgba(255,255,255,.18);color:#fff;}
+.qprog-dot.answered{border-color:#ffb3cc;color:#ffe0ee;background:rgba(255,180,200,.15);}
+.qprog-dot.current{background:#ff6090;color:#fff;border-color:#ff6090;}
+.q-card{background:var(--surf);border:1px solid var(--border);border-radius:14px;
+  padding:20px 26px;flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.qnum{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--acc);letter-spacing:.1em;margin-bottom:7px;font-weight:700;}
+.qtype-badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 12px;border-radius:6px;margin-bottom:10px;}
+.badge-mc{background:rgba(156,26,80,.1);border:1.5px solid rgba(156,26,80,.25);color:var(--acc);}
+.badge-tf{background:rgba(180,100,0,.08);border:1.5px solid rgba(180,100,0,.2);color:var(--gold);}
+.qtext{font-size:clamp(13px,1.8vw,19px);color:var(--text);line-height:1.6;font-weight:700;margin-bottom:16px;flex-shrink:0;}
+.opts{list-style:none;display:flex;flex-direction:column;gap:6px;flex:1;overflow-y:auto;padding-right:2px;}
+.opt{display:flex;align-items:center;gap:12px;background:var(--surf2);
+  border:2px solid var(--border);border-radius:10px;padding:10px 14px;
+  cursor:pointer;transition:all .18s;font-size:clamp(13px,1.4vw,16px);color:var(--text2);font-weight:600;}
+.opt:hover{border-color:var(--acc2);background:var(--surf3);color:var(--text);transform:translateX(4px);}
+.opt-letter{width:28px;height:28px;border-radius:50%;background:rgba(156,26,80,.12);border:1.5px solid rgba(156,26,80,.2);
+  display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;
+  font-size:13px;font-weight:800;color:var(--acc);flex-shrink:0;}
+.opt.sel .opt-letter{background:var(--acc);color:#fff;border-color:var(--acc);}
+.opt.correct .opt-letter{background:var(--work);color:#fff;border-color:var(--work);}
+.opt.wrong .opt-letter{background:var(--hot);color:#fff;border-color:var(--hot);}
+.opt-text{flex:1;line-height:1.4;}
+.opt.sel{border-color:var(--acc);background:rgba(156,26,80,.07);color:var(--acc);}
+.opt.correct{background:rgba(0,112,64,.08);border-color:var(--work);color:var(--work);}
+.opt.wrong{background:rgba(192,0,60,.08);border-color:var(--hot);color:var(--hot);}
+.qfb{margin-top:10px;padding:11px 14px;border-radius:10px;font-size:clamp(11px,1.3vw,14px);display:none;line-height:1.6;}
+.qfb.on{display:block;}
+.qfb.ok{background:rgba(0,112,64,.07);color:var(--work);border:2px solid rgba(0,112,64,.2);}
+.qfb.bad{background:rgba(192,0,60,.07);color:var(--hot);border:2px solid rgba(192,0,60,.2);}
+.quiz-foot{display:flex;align-items:center;gap:10px;padding-top:10px;flex-shrink:0;}
+.btn-qnav{padding:9px 20px;border-radius:10px;font-family:"Space Grotesk",sans-serif;
+  font-size:clamp(12px,1.3vw,15px);font-weight:700;cursor:pointer;transition:all .18s;border:none;}
+.btn-prev{background:var(--surf2);border:2px solid var(--border);color:var(--text2);}
+.btn-prev:hover{border-color:var(--acc);color:var(--acc);}
+.btn-next{background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;box-shadow:0 3px 12px rgba(192,0,60,.25);}
+.btn-next:hover{box-shadow:0 6px 20px rgba(192,0,60,.4);transform:translateY(-1px);}
+.btn-submit-q{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;}
+.qcounter{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--text3);}
+
+/* ==== SCORE ==== */
+.score-overlay{position:absolute;inset:0;background:rgba(80,0,30,.55);display:none;
+  align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(8px);}
+.score-overlay.on{display:flex;}
+.score-box{background:var(--surf);border:1px solid var(--border);border-radius:16px;
+  padding:30px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);
+  animation:fu .28s ease;min-width:280px;}
+.score-big{font-family:"Space Grotesk",sans-serif;font-size:64px;font-weight:800;color:var(--hot);line-height:1;}
+.score-pct{font-size:18px;color:var(--text3);margin-top:2px;}
+.score-sub{font-size:12px;color:var(--text2);margin:7px 0 3px;}
+.score-grade{font-size:14px;font-weight:700;margin-top:7px;}
+.score-actions{display:flex;gap:8px;justify-content:center;margin-top:16px;}
+.btn-score{padding:8px 18px;border-radius:7px;font-family:"Nunito",sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .17s;}
+.btn-review{background:var(--surf2);border:1px solid var(--border);color:var(--text2);}
+.btn-ulangi{background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;}
+
+/* ==== LKPD ==== */
+.lkpd-section{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;}
+.lkpd-section h3{font-family:"Space Grotesk",sans-serif;font-size:17px;font-weight:800;
+  color:var(--acc);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.lkpd-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;
+  font-family:"Nunito",sans-serif;font-size:14px;color:var(--text);background:var(--surf2);
+  outline:none;transition:border-color .17s;margin-bottom:5px;}
+.lkpd-input:focus{border-color:var(--acc);}
+.lkpd-label{font-size:14px;font-weight:800;color:var(--text);margin-bottom:5px;display:block;}
+.lkpd-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+.excel-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.82rem;
+  border:2px solid var(--border);background:var(--surf);color:var(--text);}
+.excel-table th{background:rgba(156,26,80,.15);padding:10px 8px;border:1px solid var(--border2);
+  text-align:center;color:var(--acc);font-weight:800;font-size:12px;letter-spacing:.02em;}
+.excel-table td{border:1px solid var(--border);padding:0;}
+.excel-table input{width:100%;padding:9px 6px;border:none;outline:none;background:transparent;font-size:13px;
+  text-align:center;font-size:.78rem;color:var(--text);}
+.excel-table input:focus{background:rgba(156,26,80,.05);}
+.btn-download{background:var(--acc);color:white;padding:8px 16px;border-radius:8px;font-size:11px;
+  font-weight:700;margin-top:9px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  border:none;transition:all .2s;box-shadow:0 2px 6px rgba(156,26,80,.25);margin-right:7px;}
+.btn-download:hover{background:var(--acc3);transform:translateY(-1px);}
+.btn-download-pdf{background:#b71c1c;}
+.btn-download-pdf:hover{background:#7f0000;}
+.btn-download-xlsx{background:#1a5e20;}
+.btn-download-xlsx:hover{background:#0a3a10;}
+
+/* ==== TOAST ==== */
+#ambilToast{display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--acc3);color:#fff;border:1px solid var(--acc2);border-radius:10px;
+  padding:10px 20px;font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:700;
+  z-index:5000;box-shadow:0 4px 20px rgba(0,0,0,.2);pointer-events:none;transition:opacity .3s;}
+
+/* ==== LIFE CARDS ==== */
+.life-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.life-card{background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:10px 11px;display:flex;gap:9px;align-items:flex-start;}
+.life-icon{font-size:24px;flex-shrink:0;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;}
+.life-icon.hot{background:rgba(192,0,60,.1);}.life-icon.cold{background:rgba(0,80,192,.08);}
+.life-icon.work{background:rgba(0,112,64,.07);}
+.life-text h4{font-family:"Space Grotesk",sans-serif;font-size:12px;font-weight:700;color:var(--acc);margin-bottom:3px;}
+.life-text p{font-size:10.5px;color:var(--text2);line-height:1.55;margin:0;}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ==== 16:9 FULLSCREEN WRAPPER ==== */
+#wrapper-169{
+  position:relative;
+  width:100vw;
+  height:calc(100vw * 9 / 16);
+  max-height:100vh;
+  max-width:calc(100vh * 16 / 9);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+  box-shadow:0 0 60px rgba(0,0,0,0.5);
+}
+@media(min-aspect-ratio:16/9){
+  #wrapper-169{width:calc(100vh * 16/9);height:100vh;max-width:none;max-height:none;}
+}
+
+/* LKPD Pagination */
+.lkpd-pg{display:none;flex:1;overflow-y:auto;padding:8px 14px 12px;}
+.lkpd-pg.active{display:flex;flex-direction:column;}
+.lkpd-pg::-webkit-scrollbar{width:4px;}
+.lkpd-pg::-webkit-scrollbar-thumb{background:var(--border2);}
+</style>
+</head>
+<body>
+<div id="wrapper-169">
+
+<!-- SOUNDS – same as reference file -->
+<audio id="clickSfx" src="assets/sounds/jump.wav" preload="auto"></audio>
+<audio id="sndBenar" src="assets/sounds/benar.wav" preload="auto"></audio>
+<audio id="sndSalah" src="assets/sounds/salah.wav" preload="auto"></audio>
+<audio id="sndBerhasil" src="assets/sounds/berhasil.wav" preload="auto"></audio>
+
+<!-- ===== LOADING ===== -->
+<div id="loadScreen">
+  
+  <div class="load-title">Lab Virtual – <span>Siklus Carnot</span></div>
+  <div class="load-sub">Fisika · Termodinamika</div>
+  <div class="load-bar-wrap"><div class="load-bar-slide" id="loadBar"></div></div>
+  <div class="load-percent" id="loadPct">0%</div>
+  <div class="load-status" id="loadStatus">Memuat modul termodinamika...</div>
+  <button id="btnMulai" onclick="startApp()">🔥 Mulai Praktikum</button>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="logo">
+    <div class="logo-icon"><img src="data:image/png;base64,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" alt="RM"></div>
+    <div><div class="logo-text">Lab Virtual</div><div class="logo-sub">Fisika · Siklus Carnot</div></div>
+  </div>
+  
+  <button id="menuToggle" onclick="toggleMenu()" aria-label="Menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <nav id="mainNav">
+    <button class="nb active" onclick="showPage('tujuan',this)">🎯 Tujuan</button>
+    <button class="nb" onclick="showPage('teori',this)">📚 Teori</button>
+    <button class="nb" onclick="showPage('prosedur',this)">📋 Prosedur</button>
+    <button class="nb" onclick="showPage('simulasi',this)">🔥 Simulasi</button>
+    <button class="nb" onclick="showPage('lkpd',this)">📝 LKPD</button>
+    <button class="nb" onclick="showPage('kehidupan',this)">🌍 Kehidupan</button>
+    <button class="nb" onclick="showPage('kuis',this)">🏆 Kuis</button>
+  </nav>
+</header>
+
+<div id="app">
+
+<!-- ===== TUJUAN ===== -->
+<div id="page-tujuan" class="page active">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:10px 14px;">
+    <div class="hero" style="flex-shrink:0;margin-bottom:10px;">
+      <div>
+        <div class="h-title">🎯 Tujuan <span>Pembelajaran</span></div>
+        <div class="h-desc">Lab Virtual Fisika – Siklus Carnot &amp; Efisiensi Mesin Kalor</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;overflow:hidden;">
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci r">📘</div><div class="ct">Tujuan Pembelajaran</div></div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Setelah mengikuti pembelajaran ini, murid mampu:</p>
+        <ul class="olist">
+          <li>Murid mampu menganalisis sifat-sifat fluida statis (massa jenis, tekanan, tekanan hidrostatis, dan tekanan mutlak)</li>
+          <li>Menjelaskan 4 proses dalam siklus Carnot secara kualitatif dan kuantitatif</li>
+          <li>Menghitung efisiensi mesin Carnot menggunakan suhu sumber dan reservoir</li>
+          <li>Membandingkan efisiensi mesin Carnot ideal dengan mesin nyata</li>
+          <li>Menganalisis hubungan suhu reservoir terhadap efisiensi mesin</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci b">🔬</div><div class="ct">Tujuan Percobaan</div></div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Melalui simulasi virtual, peserta didik dapat:</p>
+        <ul class="olist">
+          <li>Menjelaskan 4 proses dalam siklus Carnot secara kualitatif dan kuantitatif</li>
+          <li>Menghitung efisiensi mesin Carnot menggunakan suhu sumber dan reservoir</li>
+          <li>Membandingkan efisiensi mesin Carnot ideal dengan mesin nyata</li>
+          <li>Menganalisis hubungan suhu reservoir terhadap efisiensi mesin</li>
+        </ul>
+        <div class="notebox" style="margin-top:8px;"><div class="nt">💡 Info</div><p>Gunakan menu <strong>Simulasi</strong> untuk menjalankan percobaan virtual dan <strong>LKPD</strong> untuk mencatat data.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEORI ===== -->
+<div id="page-teori" class="page">
+  <div id="teori-section-nav" style="display:flex;align-items:center;justify-content:space-between;padding:4px 14px;background:rgba(156,26,80,.06);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="teoriNav(-1)" style="background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;">← Sebelumnya</button>
+    <span id="teori-page-indicator" style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--acc);font-weight:700;">1 / 2</span>
+    <button onclick="teoriNav(1)" style="background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;">Berikutnya →</button>
+  </div>
+  <div id="teori-pages-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+  <div class="lkpd-pg active" id="teori-pg-1" style="padding:8px 14px;">
+    <div class="hero">
+      <div>
+        <div class="h-title">Siklus <span>Carnot</span> &amp; Efisiensi Mesin Kalor</div>
+        <div class="h-desc">Siklus reversibel ideal oleh Sadi Carnot (1824) — empat proses termodinamika dan batas efisiensi yang tidak dapat dilampaui mesin nyata mana pun.</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:1;min-height:0;">
+    <!-- Row 1: Dasar Teori -->
+    <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci o">🔥</div><div class="ct">Konsep Mesin Kalor</div></div>
+        <p><strong style="color:var(--hot);">Nicolas Léonard Sadi Carnot</strong> (1824) memperkenalkan mesin kalor ideal yang bekerja antara dua reservoir suhu.</p>
+        <p>Sebuah <strong>mesin kalor</strong> menyerap kalor Q<sub>H</sub> dari sumber panas (T<sub>H</sub>), mengubah sebagian jadi usaha W, dan membuang Q<sub>C</sub> ke reservoir dingin (T<sub>C</sub>).</p>
+        <div class="formula-box hot">Q<sub>H</sub> = W + Q<sub>C</sub> &nbsp;(Hukum I Termodinamika)</div>
+        <div class="chips">
+          <span class="chip chip-r">T<sub>H</sub> = Suhu Tinggi</span>
+          <span class="chip chip-b">T<sub>C</sub> = Suhu Rendah</span>
+        </div>
+    </div>
+
+    <!-- Row 2: 4 Proses -->
+    <div class="card" style="margin-bottom:0;overflow:auto;">
+      <div class="ch"><div class="ci b">📐</div><div class="ct">4 Proses dalam Siklus Carnot</div></div>
+      <div class="two-col">
+        <div style="background:rgba(192,0,60,.05);border:1px solid rgba(192,0,60,.15);border-radius:8px;padding:9px 10px;">
+          <div style="font-size:11px;font-weight:800;color:var(--hot);margin-bottom:5px;">① Ekspansi Isotermal (A→B)</div>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6;">Gas menyerap kalor Q<sub>H</sub> dari sumber panas pada suhu konstan T<sub>H</sub>. Volume meningkat. ΔU = 0, W = Q<sub>H</sub>.</p>
+          <div class="formula-box hot" style="margin:5px 0 0;font-size:11px;">Q<sub>H</sub> = nRT<sub>H</sub> ln<span class="frac"><span class="num">V<sub>B</sub></span><span class="den">V<sub>A</sub></span></span></div>
+        </div>
+        <div style="background:rgba(180,100,0,.05);border:1px solid rgba(180,100,0,.15);border-radius:8px;padding:9px 10px;">
+          <div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:5px;">② Ekspansi Adiabatik (B→C)</div>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6;">Gas berekspansi tanpa pertukaran kalor (Q=0). Suhu turun T<sub>H</sub> → T<sub>C</sub>. W = −ΔU.</p>
+          <div class="formula-box gold" style="margin:5px 0 0;font-size:11px;">T<sub>H</sub>V<sub>B</sub><sup>γ−1</sup> = T<sub>C</sub>V<sub>C</sub><sup>γ−1</sup></div>
+        </div>
+        <div style="background:rgba(0,80,192,.05);border:1px solid rgba(0,80,192,.15);border-radius:8px;padding:9px 10px;">
+          <div style="font-size:11px;font-weight:800;color:var(--cold);margin-bottom:5px;">③ Kompresi Isotermal (C→D)</div>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6;">Gas dikompresi, membuang kalor Q<sub>C</sub> ke reservoir dingin pada suhu konstan T<sub>C</sub>. Volume berkurang.</p>
+          <div class="formula-box cold" style="margin:5px 0 0;font-size:11px;">Q<sub>C</sub> = nRT<sub>C</sub> ln<span class="frac"><span class="num">V<sub>C</sub></span><span class="den">V<sub>D</sub></span></span></div>
+        </div>
+        <div style="background:rgba(0,112,64,.04);border:1px solid rgba(0,112,64,.15);border-radius:8px;padding:9px 10px;">
+          <div style="font-size:11px;font-weight:800;color:var(--work);margin-bottom:5px;">④ Kompresi Adiabatik (D→A)</div>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6;">Gas dikompresi tanpa pertukaran kalor (Q=0). Suhu naik T<sub>C</sub> → T<sub>H</sub>. Kembali ke keadaan awal.</p>
+          <div class="formula-box work" style="margin:5px 0 0;font-size:11px;">T<sub>C</sub>V<sub>D</sub><sup>γ−1</sup> = T<sub>H</sub>V<sub>A</sub><sup>γ−1</sup></div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- end two-col grid -->
+  </div><!-- teori-pg-1 -->
+  <div class="lkpd-pg" id="teori-pg-2" style="padding:8px 14px;display:flex;flex-direction:column;">
+    <!-- Row 3: Efisiensi + Teorema + COP -->
+    <div style="font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:700;color:var(--acc);margin-bottom:8px;flex-shrink:0;">⚡ Rumus &amp; Teorema Siklus Carnot</div>
+    <div class="three-col" style="flex:1;min-height:0;gap:7px;">
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci y">⚡</div><div class="ct">Efisiensi Carnot</div></div>
+        <p>Efisiensi (η) adalah rasio usaha terhadap kalor yang diserap:</p>
+        <div class="formula-box gold">η = <span class="frac"><span class="num">W</span><span class="den">Q<sub>H</sub></span></span> = 1 − <span class="frac"><span class="num">Q<sub>C</sub></span><span class="den">Q<sub>H</sub></span></span></div>
+        <p>Untuk mesin Carnot ideal (<span class="frac"><span class="num">Q<sub>H</sub></span><span class="den">T<sub>H</sub></span></span> = <span class="frac"><span class="num">Q<sub>C</sub></span><span class="den">T<sub>C</sub></span></span>):</p>
+        <div class="formula-box gold">η<sub>Carnot</sub> = 1 − <span class="frac"><span class="num">T<sub>C</sub></span><span class="den">T<sub>H</sub></span></span></div>
+        <p style="color:var(--hot);font-size:11px;font-weight:700;">⚠ Suhu dalam Kelvin! (K = °C + 273)</p>
+        <div class="chips" style="margin-top:5px;">
+          <span class="chip chip-r">T<sub>H</sub>↑ → η↑</span>
+          <span class="chip chip-b">T<sub>C</sub>↓ → η↑</span>
+          <span class="chip chip-r">η &lt; 100%</span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci p">📜</div><div class="ct">Teorema Carnot &amp; Entropi</div></div>
+        <p><strong>Teorema Carnot:</strong> Tidak ada mesin antara dua reservoir yang dapat melebihi efisiensi mesin Carnot reversibel.</p>
+        <div class="formula-box" style="margin:5px 0;">η<sub>nyata</sub> ≤ η<sub>Carnot</sub></div>
+        <p><strong>Entropi:</strong> Untuk siklus Carnot reversibel, perubahan entropi total = 0:</p>
+        <div class="formula-box">ΔS = <span class="frac"><span class="num">Q<sub>H</sub></span><span class="den">T<sub>H</sub></span></span> − <span class="frac"><span class="num">Q<sub>C</sub></span><span class="den">T<sub>C</sub></span></span> = 0</div>
+        <p>Mesin ireversibel nyata: ΔS<sub>total</sub> &gt; 0, efisiensi berkurang.</p>
+      </div>
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci g">🔄</div><div class="ct">Siklus Carnot Terbalik</div></div>
+        <p>Siklus dibalik → <strong>Refrigerator</strong> atau <strong>Pompa Kalor</strong>: usaha W memindahkan kalor dari T<sub>C</sub> ke T<sub>H</sub>.</p>
+        <p><strong>COP Refrigerator:</strong></p>
+        <div class="formula-box cold" style="font-size:11px;">COP<sub>R</sub> = <span class="frac"><span class="num">Q<sub>C</sub></span><span class="den">W</span></span> = <span class="frac"><span class="num">T<sub>C</sub></span><span class="den">T<sub>H</sub>−T<sub>C</sub></span></span></div>
+        <p><strong>COP Pompa Kalor:</strong></p>
+        <div class="formula-box hot" style="font-size:11px;">COP<sub>HP</sub> = <span class="frac"><span class="num">Q<sub>H</sub></span><span class="den">W</span></span> = <span class="frac"><span class="num">T<sub>H</sub></span><span class="den">T<sub>H</sub>−T<sub>C</sub></span></span></div>
+        <p style="font-size:11px;margin-top:4px;">Hubungan: COP<sub>HP</sub> = COP<sub>R</sub> + 1</p>
+      </div>
+    </div>
+  </div><!-- teori-pg-2 -->
+  </div><!-- teori-pages-container -->
+</div>
+
+<!-- ===== PROSEDUR ===== -->
+<div id="page-prosedur" class="page">
+  <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:8px 14px 10px;">
+    <div class="two-col" style="flex:1;min-height:0;gap:8px;">
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci r">🔥</div><div class="ct">Persiapan Simulasi</div></div>
+        <div class="steps">
+          <div class="step"><div class="snum">1</div><p>Buka halaman <strong>Simulasi</strong>. Atur suhu sumber panas <strong>T<sub>H</sub></strong> (misal 600 K) menggunakan slider.</p></div>
+          <div class="step"><div class="snum">2</div><p>Atur suhu reservoir dingin <strong>T<sub>C</sub></strong> (misal 300 K). Pastikan T<sub>H</sub> &gt; T<sub>C</sub>.</p></div>
+          <div class="step"><div class="snum">3</div><p>Pilih kecepatan animasi. <strong>Lambat</strong> untuk observasi detail fase, <strong>Cepat</strong> untuk pengambilan data.</p></div>
+          <div class="step"><div class="snum">4</div><p>Tekan <strong>▶ Jalankan</strong>. Amati animasi piston, perubahan suhu, dan diagram P-V yang terbentuk.</p></div>
+          <div class="step"><div class="snum">5</div><p>Perhatikan <strong>fase aktif</strong> siklus (badge warna) dan nilai Q<sub>H</sub>, Q<sub>C</sub>, W, η di panel statistik.</p></div>
+        </div>
+        <div class="notebox"><div class="nt">💡 Tips</div><p>Gunakan <strong>Pause</strong> untuk berhenti pada fase tertentu dan amati nilai termodinamika secara detail.</p></div>
+      </div>
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci b">📊</div><div class="ct">Pengambilan Data &amp; Analisis</div></div>
+        <div class="steps">
+          <div class="step"><div class="snum">6</div><p>Catat nilai <strong>T<sub>H</sub>, T<sub>C</sub>, Q<sub>H</sub>, Q<sub>C</sub>, W</strong> dari panel statistik untuk satu siklus penuh.</p></div>
+          <div class="step"><div class="snum">7</div><p>Hitung efisiensi dengan dua cara: <strong>η = <span class="frac"><span class="num">W</span><span class="den">Q<sub>H</sub></span></span></strong> dan <strong>η = 1 − <span class="frac"><span class="num">T<sub>C</sub></span><span class="den">T<sub>H</sub></span></span></strong>. Bandingkan.</p></div>
+          <div class="step"><div class="snum">8</div><p>Klik <strong>📥 Ambil Data → LKPD</strong> untuk menyimpan data ke tabel LKPD secara otomatis.</p></div>
+          <div class="step"><div class="snum">9</div><p>Ubah T<sub>H</sub> ke 600K, 700K, 800K (T<sub>C</sub> tetap 300K). Ulangi langkah 6–8 untuk setiap variasi.</p></div>
+          <div class="step"><div class="snum">10</div><p>Ubah T<sub>C</sub> ke 250K, 200K (T<sub>H</sub> tetap 600K). Amati perubahan efisiensi dan catat di LKPD.</p></div>
+        </div>
+        <div class="notebox"><div class="nt">💡 Ingat</div><p>Semua suhu harus dalam <strong>Kelvin (K)</strong>. Efisiensi Carnot hanya bergantung pada T<sub>H</sub> dan T<sub>C</sub>.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIMULASI ===== -->
+<div id="page-simulasi" class="page">
+  <div style="display:flex;flex:1;min-height:0;gap:8px;padding:8px 12px 10px;overflow:hidden;">
+    <!-- LEFT PANEL -->
+    <div class="ctrl-panel" style="width:210px;flex-shrink:0;">
+      <h3>🔧 Kontrol Mesin Carnot</h3>
+      <div class="cg">
+        <label style="font-size:10.5px;font-weight:800;color:var(--text2);">Suhu Panas T<sub>H</sub> (K)</label>
+        <input type="range" id="slTH" min="400" max="1000" value="600" step="10" oninput="updateParams()">
+        <div style="font-family:JetBrains Mono,monospace;font-size:13px;color:var(--hot);margin-bottom:3px;font-weight:800;" id="lblTH">600 K</div>
+      </div>
+      <div class="cg">
+        <label style="font-size:10.5px;font-weight:800;color:var(--text2);">Suhu Dingin T<sub>C</sub> (K)</label>
+        <input type="range" id="slTC" min="200" max="400" value="300" step="10" oninput="updateParams()">
+        <div style="font-family:JetBrains Mono,monospace;font-size:13px;color:var(--cold);margin-bottom:3px;font-weight:800;" id="lblTC">300 K</div>
+      </div>
+      <div class="cg">
+        <label style="font-size:10.5px;font-weight:800;color:var(--text2);">Kecepatan Animasi</label>
+        <select class="select-ctrl" id="slSpeed">
+          <option value="1">Lambat (1x)</option>
+          <option value="2" selected>Normal (2x)</option>
+          <option value="4">Cepat (4x)</option>
+        </select>
+      </div>
+      <div style="background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:8px 9px;">
+        <div style="font-size:9px;font-weight:800;color:var(--acc);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">📍 Fase Aktif</div>
+        <div id="phaseBadge" class="phase-badge phase-1">① Ekspansi Isotermal</div>
+        <div style="font-family:JetBrains Mono,monospace;font-size:9.5px;color:var(--text2);line-height:2;margin-top:5px;">
+          <div>T aktif: <span id="sim-T" style="font-weight:700;color:var(--hot);">600 K</span></div>
+          <div>P rel.: <span id="sim-P" style="font-weight:700;color:var(--cold);">– atm</span></div>
+          <div>Q siklus: <span id="sim-Q" style="font-weight:700;color:var(--gold);">– J</span></div>
+        </div>
+      </div>
+      <div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:2px;">📋 Pilih Baris LKPD:</div>
+      <select class="select-ctrl" id="lkpdRow" style="margin-bottom:4px;">
+        <option>1</option><option>2</option><option>3</option>
+        <option>4</option><option>5</option><option>6</option>
+      </select>
+      <div style="display:flex;gap:5px;flex-direction:column;margin-top:auto;">
+        <button class="btn btn-start" id="btnPlay" onclick="toggleSimPause()">⏸ Pause</button>
+        <button class="btn btn-sound-off" id="btnMute" onclick="toggleSimMute()">🔇 Sound Off</button>
+        <button class="btn btn-reset" onclick="resetSim()">↺ Reset</button>
+      </div>
+    </div>
+    <!-- RIGHT: canvas area -->
+    <div class="sim-right" style="flex:1;min-width:0;">
+      <div class="canvas-wrap">
+        <h3>🔥 Simulasi Mesin Carnot – Siklus Termodinamika</h3>
+        <!-- Piston kiri, PV kanan (lebih besar) -->
+        <div style="display:flex;gap:7px;flex:1;min-height:0;">
+          <canvas id="simCanvas" style="flex:1.1;min-width:0;"></canvas>
+          <canvas id="pvCanvas" style="flex:1.9;min-width:0;"></canvas>
+        </div>
+      </div>
+      <div class="statsrow">
+        <div class="sbox"><span class="sv hot" id="stat-TH">600</span><span class="sl" style="text-transform:uppercase;">T<sub>H</sub> (K)</span></div>
+        <div class="sbox"><span class="sv cold" id="stat-TC">300</span><span class="sl" style="text-transform:uppercase;">T<sub>C</sub> (K)</span></div>
+        <div class="sbox"><span class="sv hot" id="stat-QH">0.0</span><span class="sl" style="text-transform:uppercase;">Q<sub>H</sub> (J)</span></div>
+        <div class="sbox"><span class="sv cold" id="stat-QC">0.0</span><span class="sl" style="text-transform:uppercase;">Q<sub>C</sub> (J)</span></div>
+        <div class="sbox"><span class="sv work" id="stat-W">0.0</span><span class="sl" style="text-transform:uppercase;">W (J)</span></div>
+        <div class="sbox"><span class="sv gold" id="stat-eta">50.0</span><span class="sl" style="font-size:14px;font-weight:900;">η (%)</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;margin-top:4px;">
+        <button onclick="ambilData()" style="flex:1;background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;border:none;border-radius:7px;padding:9px 14px;font-family:Space Grotesk,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(192,0,60,.3);">
+          📥 Ambil Data ke LKPD
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="ambilToast"></div>
+
+<!-- ===== LKPD ===== -->
+<div id="page-lkpd" class="page">
+  <div id="lkpd-section-nav" style="display:flex;align-items:center;justify-content:space-between;padding:4px 14px;background:rgba(156,26,80,.06);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button id="lkpd-prev-btn" onclick="lkpdNav(-1)" style="background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;">← Sebelumnya</button>
+    <span id="lkpd-page-indicator" style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--acc);font-weight:700;">1 / 4</span>
+    <button id="lkpd-next-btn" onclick="lkpdNav(1)" style="background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;">Berikutnya →</button>
+  </div>
+  <div id="lkpd-pages-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="lkpd-pg active" id="lkpd-pg-1" style="padding:10px 16px 12px;">
+    <div class="lkpd-section">
+      <h3>📌 Identitas Siswa</h3>
+      <div class="lkpd-row">
+        <div><span class="lkpd-label">Nama Lengkap</span><input class="lkpd-input" id="lkpd-nama" placeholder="Nama siswa..."></div>
+        <div><span class="lkpd-label">Kelas</span><input class="lkpd-input" id="lkpd-kelas" placeholder="XI MIPA ..."></div>
+      </div>
+      <div class="lkpd-row">
+        <div><span class="lkpd-label">Tanggal Praktikum</span><input class="lkpd-input" id="lkpd-tanggal" type="date"></div>
+        <div><span class="lkpd-label">Kelompok</span><input class="lkpd-input" id="lkpd-kelompok" placeholder="Kelompok ..."></div>
+      </div>
+    </div>
+    </div><!-- end lkpd-pg-1 -->
+    <div class="lkpd-pg" id="lkpd-pg-2">
+    <div class="lkpd-section">
+      <h3>🎯 Tujuan Percobaan</h3>
+      <textarea class="lkpd-input" id="lkpd-tujuan" rows="2">Menghitung efisiensi mesin Carnot dan memverifikasi formula η = 1 − TC/TH melalui simulasi siklus termodinamika virtual.</textarea>
+    </div>
+    <div class="lkpd-section">
+      <h3>📊 Data Percobaan – Variasi Suhu T<sub>H</sub></h3>
+      <table class="excel-table">
+        <thead>
+          <tr>
+            <th style="min-width:28px;">No</th>
+            <th style="min-width:60px;">T<sub>H</sub> (K)</th>
+            <th style="min-width:60px;">T<sub>C</sub> (K)</th>
+            <th style="min-width:60px;">Q<sub>H</sub> (J)</th>
+            <th style="min-width:60px;">Q<sub>C</sub> (J)</th>
+            <th style="min-width:55px;">W (J)</th>
+            <th style="min-width:65px;">η hitung (%)</th>
+            <th style="min-width:65px;">η Carnot (%)</th>
+            <th style="min-width:55px;">Selisih (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="text-align:center;padding:5px;font-size:11px;font-weight:700;">1</td><td><input id="r1-TH"></td><td><input id="r1-TC"></td><td><input id="r1-QH"></td><td><input id="r1-QC"></td><td><input id="r1-W"></td><td><input id="r1-eta"></td><td><input id="r1-carnot"></td><td><input id="r1-sel"></td></tr>
+          <tr><td style="text-align:center;padding:5px;font-size:11px;font-weight:700;">2</td><td><input id="r2-TH"></td><td><input id="r2-TC"></td><td><input id="r2-QH"></td><td><input id="r2-QC"></td><td><input id="r2-W"></td><td><input id="r2-eta"></td><td><input id="r2-carnot"></td><td><input id="r2-sel"></td></tr>
+          <tr><td style="text-align:center;padding:5px;font-size:11px;font-weight:700;">3</td><td><input id="r3-TH"></td><td><input id="r3-TC"></td><td><input id="r3-QH"></td><td><input id="r3-QC"></td><td><input id="r3-W"></td><td><input id="r3-eta"></td><td><input id="r3-carnot"></td><td><input id="r3-sel"></td></tr>
+          <tr><td style="text-align:center;padding:5px;font-size:11px;font-weight:700;">4</td><td><input id="r4-TH"></td><td><input id="r4-TC"></td><td><input id="r4-QH"></td><td><input id="r4-QC"></td><td><input id="r4-W"></td><td><input id="r4-eta"></td><td><input id="r4-carnot"></td><td><input id="r4-sel"></td></tr>
+          <tr><td style="text-align:center;padding:5px;font-size:11px;font-weight:700;">5</td><td><input id="r5-TH"></td><td><input id="r5-TC"></td><td><input id="r5-QH"></td><td><input id="r5-QC"></td><td><input id="r5-W"></td><td><input id="r5-eta"></td><td><input id="r5-carnot"></td><td><input id="r5-sel"></td></tr>
+          <tr><td style="text-align:center;padding:5px;font-size:11px;font-weight:700;">6</td><td><input id="r6-TH"></td><td><input id="r6-TC"></td><td><input id="r6-QH"></td><td><input id="r6-QC"></td><td><input id="r6-W"></td><td><input id="r6-eta"></td><td><input id="r6-carnot"></td><td><input id="r6-sel"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    </div><!-- end lkpd-pg-2 -->
+    <div class="lkpd-pg" id="lkpd-pg-3">
+    <div class="lkpd-section">
+      <h3>📝 Pertanyaan Diskusi</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div><span class="lkpd-label">1. Bagaimana pengaruh kenaikan T<sub>H</sub> terhadap efisiensi mesin Carnot?</span>
+          <textarea class="lkpd-input" id="lkpd-d1" rows="2" placeholder="Tulis analisis..."></textarea></div>
+        <div><span class="lkpd-label">2. Mengapa efisiensi 100% tidak bisa dicapai secara termodinamika?</span>
+          <textarea class="lkpd-input" id="lkpd-d2" rows="2" placeholder="Tulis analisis..."></textarea></div>
+        <div><span class="lkpd-label">3. Bandingkan efisiensi Carnot dengan mesin diesel/Otto. Mengapa berbeda?</span>
+          <textarea class="lkpd-input" id="lkpd-d3" rows="2" placeholder="Tulis analisis..."></textarea></div>
+        <div><span class="lkpd-label">4. Jelaskan hubungan siklus Carnot terbalik dengan cara kerja kulkas!</span>
+          <textarea class="lkpd-input" id="lkpd-d4" rows="2" placeholder="Tulis analisis..."></textarea></div>
+      </div>
+    </div>
+    </div><!-- end lkpd-pg-3 -->
+    <div class="lkpd-pg" id="lkpd-pg-4">
+    <div class="lkpd-section">
+      <h3>📌 Kesimpulan</h3>
+      <textarea class="lkpd-input" id="lkpd-kesimpulan" rows="3" placeholder="Tulis kesimpulan berdasarkan data dan analisis..."></textarea>
+    </div>
+    <div class="lkpd-section" style="background:linear-gradient(135deg,rgba(156,26,80,.05),rgba(0,80,192,.05));">
+      <h3>⬇️ Unduh LKPD</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Pastikan semua data sudah terisi sebelum mengunduh.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-download btn-download-xlsx" onclick="downloadExcel()">📊 Unduh Excel (.xlsx)</button>
+        <button class="btn-download btn-download-pdf" onclick="downloadPDF()">📄 Unduh PDF</button>
+        <button class="btn-download" style="background:#6a0033;" onclick="resetLKPD()">↺ Reset LKPD</button>
+      </div>
+    </div>
+    </div><!-- end lkpd-pg-4 -->
+  </div><!-- lkpd-pages-container -->
+</div>
+
+<!-- ===== KEHIDUPAN ===== -->
+<div id="page-kehidupan" class="page">
+  <div id="kehidupan-section-nav" style="display:flex;align-items:center;justify-content:space-between;padding:4px 14px;background:rgba(156,26,80,.06);border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button onclick="kehidupanNav(-1)" style="background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;">← Sebelumnya</button>
+    <span id="kehidupan-page-indicator" style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--acc);font-weight:700;">1 / 2</span>
+    <button onclick="kehidupanNav(1)" style="background:linear-gradient(135deg,#c0003c,#d63060);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;">Berikutnya →</button>
+  </div>
+  <div id="kehidupan-pages-container" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="lkpd-pg active" id="kehidupan-pg-1" style="padding:8px 14px;display:flex;flex-direction:column;">
+    <div class="hero" style="margin-bottom:8px;">
+      <div>
+        <div class="h-title">Siklus Carnot dalam <span>Kehidupan</span> Sehari-hari</div>
+        <div class="h-desc">Prinsip termodinamika Carnot hadir di berbagai teknologi modern — dari mesin kendaraan, pembangkit listrik, hingga kulkas di rumah.</div>
+      </div>
+    </div>
+    <div class="two-col" style="flex:1;min-height:0;gap:8px;">
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci r">🚗</div><div class="ct">Mesin Bensin (Siklus Otto)</div></div>
+        <p>Pembakaran menghasilkan gas panas T<sub>H</sub>≈2000K, gas buang ke atmosfer T<sub>C</sub>≈600K. Efisiensi Carnot ≈70%, namun aktual hanya 25–35% akibat gesekan dan panas ke dinding.</p>
+        <div class="formula-box hot" style="font-size:11px;">η<sub>Otto</sub> = 1 − <span class="frac"><span class="num">1</span><span class="den">r<sup>γ−1</sup></span></span> &nbsp;(r = rasio kompresi)</div>
+        <div class="chips"><span class="chip chip-r">T<sub>H</sub>≈2000K</span><span class="chip chip-b">T<sub>C</sub>≈600K</span><span class="chip chip-y">η nyata 25–35%</span></div>
+      </div>
+      <div class="card" style="margin-bottom:0;overflow:auto;">
+        <div class="ch"><div class="ci y">🚢</div><div class="ct">Mesin Diesel (Siklus Diesel)</div></div>
+        <p>Rasio kompresi lebih tinggi (14–25:1) menghasilkan efisiensi lebih baik dari bensin. Digunakan di truk, kapal, kereta, dan generator karena torsi besar dan irit bahan bakar.</p>
+        <div class="formula-box gold" style="font-size:10px;">η<sub>Diesel</sub> = 1 − <span class="frac"><span class="num">1</span><span class="den">r<sup>γ−1</sup></span></span> · <span class="frac"><span class="num">r<sub>c</sub><sup>γ</sup>−1</span><span class="den">γ(r<sub>c</sub>−1)</span></span></div>
+        <div class="chips"><span class="chip chip-y">Rasio kompresi 14–25</span><span class="chip chip-y">η≈35–45%</span></div>
+      </div>
+    </div>
+  </div><!-- kehidupan-pg-1 -->
+    <div class="lkpd-pg" id="kehidupan-pg-2" style="padding:8px 14px;display:flex;flex-direction:column;gap:7px;">
+    <div class="card" style="margin-bottom:0;overflow:auto;flex-shrink:0;">
+      <div class="ch"><div class="ci b">❄️</div><div class="ct">Kulkas, AC &amp; Pompa Kalor – Siklus Carnot Terbalik</div></div>
+      <div class="three-col">
+        <div style="background:rgba(0,80,192,.05);border:1px solid rgba(0,80,192,.15);border-radius:8px;padding:9px;">
+          <p style="font-size:11.5px;font-weight:800;color:var(--cold);margin-bottom:4px;">❄️ Kulkas</p>
+          <p style="font-size:11px;color:var(--text2);line-height:1.55;">Kompresor memompa refrigeran. Evaporator di dalam menyerap Q<sub>C</sub>, kondensor di luar melepas Q<sub>H</sub>.</p>
+          <div class="formula-box cold" style="font-size:10.5px;margin-top:5px;">COP = <span class="frac"><span class="num">Q<sub>C</sub></span><span class="den">W</span></span> ≈ 2–5</div>
+        </div>
+        <div style="background:rgba(0,80,192,.04);border:1px solid rgba(0,80,192,.12);border-radius:8px;padding:9px;">
+          <p style="font-size:11.5px;font-weight:800;color:var(--cold);margin-bottom:4px;">🌬️ AC (Air Conditioner)</p>
+          <p style="font-size:11px;color:var(--text2);line-height:1.55;">Memindahkan kalor dari dalam ruangan ke luar. AC inverter modern COP≈4–6, sangat hemat energi.</p>
+          <div class="formula-box cold" style="font-size:10.5px;margin-top:5px;">COP<sub>ideal</sub> = <span class="frac"><span class="num">T<sub>C</sub></span><span class="den">T<sub>H</sub>−T<sub>C</sub></span></span></div>
+        </div>
+        <div style="background:rgba(192,0,60,.04);border:1px solid rgba(192,0,60,.12);border-radius:8px;padding:9px;">
+          <p style="font-size:11.5px;font-weight:800;color:var(--hot);margin-bottom:4px;">🏠 Pompa Kalor</p>
+          <p style="font-size:11px;color:var(--text2);line-height:1.55;">Untuk pemanas ruangan. Mengambil kalor dari udara dingin di luar, melepasnya ke dalam. Lebih efisien dari pemanas listrik.</p>
+          <div class="formula-box hot" style="font-size:10.5px;margin-top:5px;">COP<sub>HP</sub> = <span class="frac"><span class="num">T<sub>H</sub></span><span class="den">T<sub>H</sub>−T<sub>C</sub></span></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="life-grid" style="flex:1;min-height:0;overflow:auto;">
+      <div class="life-card"><div class="life-icon hot">⚡</div><div class="life-text"><h4>PLTU (Pembangkit Listrik Tenaga Uap)</h4><p>Uap dipanaskan boiler T<sub>H</sub>≈600°C menggerakkan turbin. Efisiensi aktual ≈33–45% (Siklus Rankine).</p></div></div>
+      <div class="life-card"><div class="life-icon hot">☀️</div><div class="life-text"><h4>Pembangkit Surya Termal</h4><p>Cermin parabola memfokuskan sinar matahari T<sub>H</sub>≈400°C. Sumber energi terbarukan bersih.</p></div></div>
+      <div class="life-card"><div class="life-icon cold">🌊</div><div class="life-text"><h4>OTEC (Ocean Thermal Energy)</h4><p>Beda suhu laut dalam T<sub>C</sub>≈5°C dan permukaan T<sub>H</sub>≈25°C. Efisiensi rendah ~3–5%, terbarukan.</p></div></div>
+      <div class="life-card"><div class="life-icon work">🚀</div><div class="life-text"><h4>Mesin Jet (Siklus Brayton)</h4><p>Kompresor→bakar T<sub>H</sub>≈1500°C→turbin. Efisiensi ≈40–50%. Mendekati siklus Carnot.</p></div></div>
+      <div class="life-card"><div class="life-icon hot">🏥</div><div class="life-text"><h4>MRI &amp; Kriogenik Medis</h4><p>Pendingin He cair T<sub>C</sub>≈4K untuk magnet superkonduktor MRI menggunakan siklus terbalik.</p></div></div>
+      <div class="life-card"><div class="life-icon cold">🏭</div><div class="life-text"><h4>Industri Petrokimia</h4><p>Kompresor turbo dan siklus refrigerasi skala industri mengoptimalkan proses pemisahan gas.</p></div></div>
+    </div>
+    <div class="card" style="margin-bottom:0;flex-shrink:0;">
+      <div class="ch"><div class="ci y">📈</div><div class="ct">Perbandingan Efisiensi Berbagai Mesin</div></div>
+      <div class="three-col">
+        <div style="background:rgba(192,0,60,.06);border:1px solid rgba(192,0,60,.15);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:11px;font-weight:800;color:var(--hot);margin-bottom:5px;">🚗 Mesin Bensin</div>
+          <div style="font-family:JetBrains Mono,monospace;font-size:24px;color:var(--hot);font-weight:800;">~30%</div>
+          <p style="font-size:10px;color:var(--text2);margin:4px 0 0;">70% kalor terbuang. Siklus Otto.</p>
+        </div>
+        <div style="background:rgba(180,100,0,.06);border:1px solid rgba(180,100,0,.15);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:5px;">🚢 Mesin Diesel</div>
+          <div style="font-family:JetBrains Mono,monospace;font-size:24px;color:var(--gold);font-weight:800;">~40%</div>
+          <p style="font-size:10px;color:var(--text2);margin:4px 0 0;">Lebih efisien dari bensin. Torsi besar.</p>
+        </div>
+        <div style="background:rgba(0,112,64,.05);border:1px solid rgba(0,112,64,.14);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:11px;font-weight:800;color:var(--work);margin-bottom:5px;">⚡ PLTU Modern</div>
+          <div style="font-family:JetBrains Mono,monospace;font-size:24px;color:var(--work);font-weight:800;">~45%</div>
+          <p style="font-size:10px;color:var(--text2);margin:4px 0 0;">Siklus Rankine superkritis.</p>
+        </div>
+      </div>
+    </div>
+  </div><!-- kehidupan-pg-2 -->
+  </div><!-- kehidupan-pages-container -->
+</div>
+
+<!-- ===== KUIS ===== -->
+<div id="page-kuis" class="page">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:8px 14px 10px;">
+    <div class="quiz-nav-header">
+      <div style="font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:700;color:#fff;">🏆 Kuis Siklus Carnot</div>
+      <div class="qprog" id="qprog"></div>
+      <button onclick="resetQuiz()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 12px;font-family:Nunito,sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.85);cursor:pointer;white-space:nowrap;">↺ Ulang</button>
+    </div>
+    <div class="q-card" id="qcard"></div>
+    <div class="quiz-foot" id="qfoot"></div>
+  </div>
+</div>
+
+<!-- SCORE OVERLAY -->
+<div class="score-overlay" id="scoreOverlay">
+  <div class="score-box">
+    <div style="font-size:36px;margin-bottom:6px;">🏆</div>
+    <div class="score-big" id="scoreBig">0</div>
+    <div class="score-pct" id="scorePct">/ 10 soal benar</div>
+    <div class="score-sub" id="scoreSub">Nilai kamu: 0%</div>
+    <div class="score-grade" id="scoreGrade"></div>
+    <div class="score-actions">
+      <button class="btn-score btn-review" onclick="document.getElementById('scoreOverlay').classList.remove('on')">📋 Review</button>
+      <button class="btn-score btn-ulangi" onclick="resetQuiz();document.getElementById('scoreOverlay').classList.remove('on')">↺ Ulangi</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #app -->
+
+<script>
+// ============ CANVAS POLYFILL ============
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    if(typeof r==='undefined')r=0;if(typeof r==='object')r=r[0]||0;
+    this.beginPath();this.moveTo(x+r,y);
+    this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);
+    this.closePath();return this;
+  };
+}
+
+// ============ SOUND (same as reference) ============
+let globalSoundEnabled=true;
+function playSound(audioEl){
+  if(!globalSoundEnabled||!audioEl)return;
+  audioEl.currentTime=0;
+  audioEl.play().catch(()=>{});
+}
+function toggleSimMute(){
+  globalSoundEnabled=!globalSoundEnabled;
+  const btn=document.getElementById('btnMute');
+  btn.textContent=globalSoundEnabled?'🔊 Sound On':'🔇 Sound Off';
+  btn.className='btn '+(globalSoundEnabled?'btn-sound-on':'btn-sound-off');
+}
+
+// ============ LOADING ============
+window.addEventListener('load',()=>{
+  const msgs=['Memuat data termodinamika...','Menginisialisasi siklus Carnot...','Menyiapkan diagram P-V...','Mengonfigurasi simulasi piston...','Memuat bank soal kuis...','Hampir selesai!'];
+  let p=0,i=0;
+  const bar=document.getElementById('loadBar'),pct=document.getElementById('loadPct'),status=document.getElementById('loadStatus');
+  const iv=setInterval(()=>{
+    p+=Math.random()*14+4;if(p>98)p=98;
+    bar.style.width=p+'%';pct.textContent=Math.round(p)+'%';
+    status.textContent=msgs[Math.min(i++,msgs.length-1)];
+    if(p>=98){clearInterval(iv);bar.style.width='100%';pct.textContent='100%';
+      setTimeout(()=>{document.getElementById('btnMulai').style.display='block';},300);}
+  },320);
+  initQuiz();
+  const td=new Date().toISOString().split('T')[0];
+  document.getElementById('lkpd-tanggal').value=td;
+  initDrag();
+  // Set tujuan as default active nav button
+  document.querySelectorAll('.nb').forEach((b,i)=>{b.classList.remove('active');if(i===0)b.classList.add('active');});
+  // Init LKPD prev button opacity
+  const lp=document.getElementById('lkpd-prev-btn');if(lp)lp.style.opacity='0.4';
+  requestAnimationFrame(simLoop);
+  document.getElementById('btnMute').textContent='🔊 Sound On';
+  document.getElementById('btnMute').className='btn btn-sound-on';
+});
+function startApp(){
+  playSound(document.getElementById('clickSfx'));
+  document.getElementById('loadScreen').classList.add('hide');
+  setTimeout(()=>document.getElementById('loadScreen').style.display='none',700);
+}
+
+// ============ NAV ============
+function showPage(id,btn){
+  playSound(document.getElementById('clickSfx'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='simulasi')setTimeout(()=>resizeCanvases(),60);
+  const nav=document.getElementById('mainNav');
+  if(nav.classList.contains('open'))nav.classList.remove('open');
+}
+function toggleMenu(){document.getElementById('mainNav').classList.toggle('open');}
+
+// ============ SIMULATION ============
+let simTH=600,simTC=300,simPhase=0,simT=0,simPaused=false;
+let simQH=0,simQC=0,simW=0,cycleCount=0;
+let lastTime=null;
+const VA=1.0,VB=2.5;
+const gamma=1.4;
+// VC, VD computed from adiabatic so cycle closes: TH*VB^(γ-1)=TC*VC^(γ-1), TC*VD^(γ-1)=TH*VA^(γ-1)
+function getVC(){return VB*Math.pow(simTH/simTC,1/(gamma-1));}
+function getVD(){return VA*Math.pow(simTH/simTC,1/(gamma-1));}
+
+function resizeCanvases(){
+  const sc=document.getElementById('simCanvas');
+  const pv=document.getElementById('pvCanvas');
+  if(!sc||!pv)return;
+  const dpr=window.devicePixelRatio||1;
+  sc.width=sc.offsetWidth*dpr;sc.height=sc.offsetHeight*dpr;
+  pv.width=pv.offsetWidth*dpr;pv.height=pv.offsetHeight*dpr;
+}
+window.addEventListener('resize',()=>{
+  if(document.getElementById('page-simulasi').classList.contains('active'))resizeCanvases();
+});
+
+function getPV(){const VC=getVC(),VD=getVD();return{VA,VB,VC,VD};}
+function carnotP(V,T){return T/V;}
+function getCurrentV(){
+  const t=simT;
+  const VC=getVC(),VD=getVD();
+  if(simPhase===0)return VA+(VB-VA)*t;
+  if(simPhase===1)return VB+(VC-VB)*t;
+  if(simPhase===2)return VC+(VD-VC)*t;
+  return VD+(VA-VD)*t;
+}
+function getCurrentT(){
+  if(simPhase===0)return simTH;
+  if(simPhase===2)return simTC;
+  const VD=getVD();
+  if(simPhase===1){const V=getCurrentV();return simTH*Math.pow(VB/V,gamma-1);}
+  const V=getCurrentV();return simTC*Math.pow(VD/V,gamma-1);
+}
+
+function simLoop(ts){
+  if(!lastTime)lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,0.05);lastTime=ts;
+  if(!simPaused){
+    const spd=parseFloat(document.getElementById('slSpeed').value)||2;
+    simT+=dt*spd*0.38;
+    if(simT>=1){
+      simT=0;simPhase=(simPhase+1)%4;
+      if(simPhase===0){cycleCount++;updateCycleStats();}
+    }
+    updateSimUI();
+  }
+  drawSim();drawPV();
+  requestAnimationFrame(simLoop);
+}
+
+function updateCycleStats(){
+  const TH=simTH,TC=simTC;
+  const VC=getVC(),VD=getVD();
+  const QH=TH*Math.log(VB/VA)*8.314*0.1;
+  const QC=TC*Math.log(VC/VD)*8.314*0.1;
+  const W=QH-QC;
+  simQH=QH;simQC=QC;simW=W;
+  document.getElementById('stat-QH').textContent=QH.toFixed(1);
+  document.getElementById('stat-QC').textContent=QC.toFixed(1);
+  document.getElementById('stat-W').textContent=W.toFixed(1);
+  document.getElementById('stat-eta').textContent=((1-TC/TH)*100).toFixed(1);
+}
+function updateParams(){
+  const TH=parseInt(document.getElementById('slTH').value);
+  let TC=parseInt(document.getElementById('slTC').value);
+  if(TC>=TH-50){TC=TH-50;document.getElementById('slTC').value=TC;}
+  document.getElementById('lblTH').textContent=TH+' K';
+  document.getElementById('lblTC').textContent=TC+' K';
+  document.getElementById('stat-TH').textContent=TH;
+  document.getElementById('stat-TC').textContent=TC;
+  document.getElementById('stat-eta').textContent=((1-TC/TH)*100).toFixed(1);
+  simTH=TH;simTC=TC;
+}
+function updateSimUI(){
+  const phases=['① Ekspansi Isotermal','② Ekspansi Adiabatik','③ Kompresi Isotermal','④ Kompresi Adiabatik'];
+  const cls=['phase-1','phase-2','phase-3','phase-4'];
+  const pb=document.getElementById('phaseBadge');
+  pb.textContent=phases[simPhase];pb.className='phase-badge '+cls[simPhase];
+  const T=getCurrentT();
+  document.getElementById('sim-T').textContent=Math.round(T)+' K';
+  const V=getCurrentV();
+  document.getElementById('sim-P').textContent=(carnotP(V,T)).toFixed(2)+' atm';
+  const colT=['var(--hot)','var(--gold)','var(--cold)','var(--work)'];
+  document.getElementById('sim-T').style.color=colT[simPhase];
+}
+
+// ---- DRAW PISTON (left canvas) ----
+function drawSim(){
+  const canvas=document.getElementById('simCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background - light pink
+  ctx.fillStyle='#fff5f8';ctx.fillRect(0,0,W,H);
+
+  const VC=getVC(),VD=getVD();
+  const normPiston=(getCurrentV()-VA)/(VC-VA);
+  const T=getCurrentT();
+  const tRatio=(T-simTC)/(simTH-simTC);
+
+  // Layout: cylinder in center - padded from edges
+  const resH=H*0.10; // reservoir height
+  const phaseH=H*0.09; // phase label height at bottom
+  const cylX=W*0.22,cylY=resH+4,cylW=W*0.56,cylH=H-resH-phaseH-8;
+  const pistonY=cylY+cylH*normPiston;
+
+  // === HOT RESERVOIR (top) ===
+  const hotA=simPhase===0?1.0:0.35;
+  ctx.save();ctx.globalAlpha=hotA;
+  const hotG=ctx.createLinearGradient(0,0,W,0);
+  hotG.addColorStop(0,'#ff4060');hotG.addColorStop(0.5,'#ff0030');hotG.addColorStop(1,'#ff4060');
+  ctx.fillStyle=hotG;
+  ctx.beginPath();ctx.roundRect(cylX-12,2,cylW+24,resH,6);ctx.fill();
+  ctx.fillStyle='#fff';
+  // Auto-fit font size to box width
+  let hotFontSize=Math.min(W*0.036,13);
+  ctx.font='bold '+hotFontSize+'px Space Grotesk';
+  const hotText='🔥 RESERVOIR PANAS  TH = '+simTH+' K';
+  const maxTW=(cylW+24)*0.88;
+  while(ctx.measureText(hotText).width>maxTW&&hotFontSize>7){hotFontSize-=0.5;ctx.font='bold '+hotFontSize+'px Space Grotesk';}
+  ctx.textAlign='center';
+  ctx.fillText(hotText,cylX+cylW/2,resH*0.68);
+  ctx.restore();
+
+  // === COLD RESERVOIR (bottom) ===
+  const coldA=simPhase===2?1.0:0.35;
+  ctx.save();ctx.globalAlpha=coldA;
+  const coldG=ctx.createLinearGradient(0,0,W,0);
+  coldG.addColorStop(0,'#3060ff');coldG.addColorStop(0.5,'#0040e0');coldG.addColorStop(1,'#3060ff');
+  ctx.fillStyle=coldG;
+  ctx.beginPath();ctx.roundRect(cylX-12,cylY+cylH+2,cylW+24,resH,6);ctx.fill();
+  ctx.fillStyle='#fff';
+  let coldFontSize=Math.min(W*0.036,13);
+  ctx.font='bold '+coldFontSize+'px Space Grotesk';
+  const coldText='🧊 RESERVOIR DINGIN  TC = '+simTC+' K';
+  while(ctx.measureText(coldText).width>maxTW&&coldFontSize>7){coldFontSize-=0.5;ctx.font='bold '+coldFontSize+'px Space Grotesk';}
+  ctx.textAlign='center';
+  ctx.fillText(coldText,cylX+cylW/2,cylY+cylH+resH*0.68);
+  ctx.restore();
+
+  // === CYLINDER WALLS ===
+  ctx.strokeStyle='rgba(180,80,120,0.5)';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  ctx.moveTo(cylX,cylY);ctx.lineTo(cylX,cylY+cylH);
+  ctx.moveTo(cylX+cylW,cylY);ctx.lineTo(cylX+cylW,cylY+cylH);
+  ctx.moveTo(cylX,cylY+cylH);ctx.lineTo(cylX+cylW,cylY+cylH);
+  ctx.stroke();
+
+  // === GAS FILL ===
+  const r=Math.round(255-tRatio*60),g=Math.round(200-tRatio*180),b=Math.round(240-tRatio*200);
+  const gasG=ctx.createLinearGradient(cylX,cylY,cylX,pistonY);
+  gasG.addColorStop(0,`rgba(${r},${g},${b},0.5)`);
+  gasG.addColorStop(1,`rgba(${r},${g},${b},0.15)`);
+  ctx.fillStyle=gasG;
+  ctx.fillRect(cylX+2,cylY,cylW-4,pistonY-cylY);
+
+  // Gas particles
+  const nP=Math.round(10+normPiston*6);
+  for(let i=0;i<nP;i++){
+    const px=cylX+8+(cylW-16)*((Math.sin(Date.now()*0.003+i*2.1)*0.5+0.5)*0.8+0.1);
+    const py=cylY+4+(pistonY-cylY-8)*((Math.cos(Date.now()*0.002+i*1.8)*0.5+0.5)*0.8+0.1);
+    const a=0.4+0.5*Math.sin(Date.now()*0.01+i);
+    ctx.beginPath();ctx.arc(px,py,2+tRatio*2,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${r-20},${g+30},${b+20},${a})`;ctx.fill();
+  }
+
+  // === PISTON ===
+  const pisG=ctx.createLinearGradient(cylX,pistonY-7,cylX+cylW,pistonY+7);
+  pisG.addColorStop(0,'#c8a0b0');pisG.addColorStop(0.5,'#e8d0d8');pisG.addColorStop(1,'#b08090');
+  ctx.fillStyle=pisG;
+  ctx.beginPath();ctx.roundRect(cylX+2,pistonY-6,cylW-4,13,4);ctx.fill();
+  ctx.strokeStyle='rgba(160,60,90,0.6)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.roundRect(cylX+2,pistonY-6,cylW-4,13,4);ctx.stroke();
+
+  // Piston rod
+  ctx.strokeStyle='rgba(160,80,100,0.5)';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(cylX+cylW/2,pistonY-6);ctx.lineTo(cylX+cylW/2,cylY-5);ctx.stroke();
+
+  // === HEAT ARROWS ===
+  if(simPhase===0){
+    drawArrowV(ctx,cylX+cylW/2,resH+4,cylY-2,'rgba(220,0,40,0.85)',W*0.012,'Qₕ');
+  }else if(simPhase===2){
+    drawArrowV(ctx,cylX+cylW/2,cylY+cylH+4,cylY+cylH+resH,'rgba(0,60,200,0.85)',W*0.012,'Qᴄ');
+  }
+
+  // Phase label - bottom strip (below cold reservoir)
+  const phLabels=['① Ekspansi Isotermal','② Ekspansi Adiabatik','③ Kompresi Isotermal','④ Kompresi Adiabatik'];
+  const phColors=['#c0003c','#b06000','#0050c0','#007040'];
+  ctx.save();
+  ctx.fillStyle='rgba(255,240,248,0.95)';
+  const phY=cylY+cylH+resH+3;
+  ctx.beginPath();ctx.roundRect(W*0.02,phY,W*0.96,phaseH-4,5);ctx.fill();
+  ctx.fillStyle=phColors[simPhase];
+  ctx.font='bold '+Math.max(9,W*0.044)+'px Space Grotesk';
+  ctx.textAlign='center';ctx.fillText(phLabels[simPhase],W/2,phY+phaseH*0.65);
+  ctx.restore();
+}
+
+function drawArrowV(ctx,x,y1,y2,color,lw,label){
+  ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=lw;
+  ctx.beginPath();ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();
+  const dir=y2>y1?1:-1;
+  ctx.beginPath();
+  ctx.moveTo(x,y2);
+  ctx.lineTo(x-lw*2.5,y2-dir*lw*4);
+  ctx.lineTo(x+lw*2.5,y2-dir*lw*4);
+  ctx.closePath();ctx.fill();
+  if(label){
+    ctx.font='bold '+Math.max(9,lw*0.9)+'px Space Grotesk';
+    ctx.textAlign='left';ctx.fillText(label,x+lw*4,(y1+y2)/2);
+  }
+  ctx.restore();
+}
+
+// ---- DRAW PV DIAGRAM (right canvas, larger) ----
+function drawPV(){
+  const canvas=document.getElementById('pvCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#fff5f8';ctx.fillRect(0,0,W,H);
+
+  const padL=W*0.1,padR=W*0.14,padT=H*0.1,padB=H*0.12;
+  const plotW=W-padL-padR,plotH=H-padT-padB;
+
+  const VC=getVC(),VD=getVD();
+  const Vmin=VA*0.75,Vmax=VC*1.12;
+  const Pmax=carnotP(VA,simTH)*1.4;
+  const Pmin=carnotP(VC,simTC)*0.65;
+
+  function toX(v){return padL+plotW*(v-Vmin)/(Vmax-Vmin);}
+  function toY(p){return padT+plotH*(1-(p-Pmin)/(Pmax-Pmin));}
+
+  // Grid
+  ctx.strokeStyle='rgba(200,100,140,0.15)';ctx.lineWidth=0.8;
+  for(let i=0;i<=4;i++){
+    ctx.beginPath();ctx.moveTo(padL+plotW*i/4,padT);ctx.lineTo(padL+plotW*i/4,padT+plotH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(padL,padT+plotH*i/4);ctx.lineTo(padL+plotW,padT+plotH*i/4);ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle='rgba(160,60,90,0.5)';ctx.lineWidth=1.8;
+  ctx.beginPath();
+  ctx.moveTo(padL,padT);ctx.lineTo(padL,padT+plotH);
+  ctx.lineTo(padL+plotW,padT+plotH);
+  ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle='#7a1040';
+  ctx.font='bold '+Math.max(9,W*0.038)+'px Space Grotesk';
+  ctx.textAlign='center';ctx.fillText('Volume (V) →',padL+plotW/2,H-padB*0.15);
+  ctx.save();ctx.translate(padL*0.28,padT+plotH/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('Tekanan (P) ↑',0,0);ctx.restore();
+
+  // Title
+  ctx.fillStyle='#7a1040';
+  ctx.font='bold '+Math.max(9,W*0.038)+'px Space Grotesk';
+  ctx.textAlign='center';ctx.fillText('Diagram P–V Siklus Carnot',W/2,padT*0.55);
+
+  // 4 SEGMENTS with distinct colors
+  const segments=[
+    {// ① Isothermal hot A→B  
+      from:VA,to:VB,iso:true,T:simTH,
+      color:'#c0003c',label:'①',labelOff:[-12,-10]},
+    {// ② Adiabatic down B→C  
+      from:VB,to:VC,iso:false,Tfrom:simTH,Vfrom:VB,
+      color:'#e07000',label:'②',labelOff:[8,0]},
+    {// ③ Isothermal cold C→D  
+      from:VC,to:VD,iso:true,T:simTC,
+      color:'#0050c0',label:'③',labelOff:[5,12]},
+    {// ④ Adiabatic up D→A  
+      from:VD,to:VA,iso:false,Tfrom:simTC,Vfrom:VD,
+      color:'#007040',label:'④',labelOff:[-14,5]},
+  ];
+
+  segments.forEach((seg,si)=>{
+    ctx.save();ctx.strokeStyle=seg.color;ctx.lineWidth=3;ctx.lineJoin='round';
+    ctx.beginPath();
+    const steps=60;
+    for(let i=0;i<=steps;i++){
+      const t=i/steps;
+      const v=seg.from+(seg.to-seg.from)*t;
+      let T;
+      if(seg.iso){T=seg.T;}
+      else{T=seg.Tfrom*Math.pow(seg.Vfrom/v,gamma-1);}
+      const p=carnotP(v,T);
+      const x=toX(v),y=toY(p);
+      if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Arrow in middle
+    const at=0.62;
+    const v1=seg.from+(seg.to-seg.from)*at;
+    const v2=v1+(seg.to-seg.from)*0.04;
+    let T1,T2;
+    if(seg.iso){T1=seg.T;T2=seg.T;}
+    else{T1=seg.Tfrom*Math.pow(seg.Vfrom/v1,gamma-1);T2=seg.Tfrom*Math.pow(seg.Vfrom/v2,gamma-1);}
+    const ax=toX(v1),ay=toY(carnotP(v1,T1));
+    const bx=toX(v2),by=toY(carnotP(v2,T2));
+    const angle=Math.atan2(by-ay,bx-ax);
+    ctx.fillStyle=seg.color;
+    ctx.beginPath();
+    ctx.moveTo(ax+7*Math.cos(angle),ay+7*Math.sin(angle));
+    ctx.lineTo(ax+7*Math.cos(angle)-8*Math.cos(angle-0.45),ay+7*Math.sin(angle)-8*Math.sin(angle-0.45));
+    ctx.lineTo(ax+7*Math.cos(angle)-8*Math.cos(angle+0.45),ay+7*Math.sin(angle)-8*Math.sin(angle+0.45));
+    ctx.closePath();ctx.fill();
+    // Label at midpoint
+    const mv=seg.from+(seg.to-seg.from)*0.5;
+    let mT;
+    if(seg.iso)mT=seg.T;else mT=seg.Tfrom*Math.pow(seg.Vfrom/mv,gamma-1);
+    const mp=carnotP(mv,mT);
+    const lx=toX(mv)+seg.labelOff[0],ly=toY(mp)+seg.labelOff[1];
+    // Label background
+    ctx.fillStyle='rgba(255,245,250,0.88)';
+    ctx.beginPath();ctx.roundRect(lx-2,ly-11,16,14,3);ctx.fill();
+    ctx.fillStyle=seg.color;
+    ctx.font='bold '+Math.max(10,W*0.042)+'px Space Grotesk';
+    ctx.textAlign='center';ctx.fillText(seg.label,lx+6,ly);
+    ctx.restore();
+  });
+
+  // V-axis labels (A,B,C,D)
+  const pts=[{v:VA,lab:'A'},{v:VB,lab:'B'},{v:VC,lab:'C'},{v:VD,lab:'D'}];
+  pts.forEach(pt=>{
+    const x=toX(pt.v);
+    ctx.strokeStyle='rgba(160,60,90,0.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(x,padT);ctx.lineTo(x,padT+plotH);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#9c1a50';ctx.font='bold '+Math.max(8,W*0.035)+'px Space Grotesk';
+    ctx.textAlign='center';ctx.fillText(pt.lab,x,padT+plotH+padB*0.5);
+  });
+
+  // Suhu labels on right
+  const tLabels=[{T:simTH,y:toY(carnotP(VA,simTH)),col:'#c0003c'},{T:simTC,y:toY(carnotP(VD,simTC)),col:'#0050c0'}];
+  tLabels.forEach(tl=>{
+    const fontSize=Math.max(8,W*0.030);
+    ctx.font='bold '+fontSize+'px JetBrains Mono';
+    const labelText='T='+tl.T+'K';
+    const textW=ctx.measureText(labelText).width;
+    const lw=textW+10;
+    ctx.fillStyle='rgba(255,245,250,0.92)';
+    ctx.beginPath();ctx.roundRect(padL+plotW+4,tl.y-9,lw,16,3);ctx.fill();
+    ctx.fillStyle=tl.col;ctx.textAlign='left';ctx.fillText(labelText,padL+plotW+7,tl.y+4);
+  });
+
+  // Moving dot
+  const cv=getCurrentV(),cT2=getCurrentT(),cp=carnotP(cv,cT2);
+  const phColors=['#c0003c','#e07000','#0050c0','#007040'];
+  ctx.beginPath();ctx.arc(toX(cv),toY(cp),7,0,Math.PI*2);
+  ctx.fillStyle=phColors[simPhase];ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+
+  // Efficiency box
+  const eta=((1-simTC/simTH)*100).toFixed(1);
+  const bx=padL+4,by=padT+4,bw=W*0.32,bh=H*0.22;
+  ctx.fillStyle='rgba(255,240,248,0.92)';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,6);ctx.fill();
+  ctx.strokeStyle='rgba(192,0,60,0.2)';ctx.lineWidth=1;ctx.stroke();
+  ctx.font='bold '+Math.max(8,W*0.032)+'px JetBrains Mono';ctx.textAlign='left';
+  const ls2=bh/4.5;
+  ctx.fillStyle='#b06000';ctx.fillText('η = '+eta+'%',bx+5,by+ls2);
+  ctx.fillStyle='#c0003c';ctx.fillText('Qₕ= '+simQH.toFixed(1)+'J',bx+5,by+ls2*2);
+  ctx.fillStyle='#0050c0';ctx.fillText('Qᴄ= '+simQC.toFixed(1)+'J',bx+5,by+ls2*3);
+  ctx.fillStyle='#007040';ctx.fillText('W = '+simW.toFixed(1)+'J',bx+5,by+ls2*4);
+}
+
+function toggleSimPause(){
+  simPaused=!simPaused;
+  document.getElementById('btnPlay').textContent=simPaused?'▶ Jalankan':'⏸ Pause';
+  document.getElementById('btnPlay').className='btn '+(simPaused?'btn-reset':'btn-start');
+  playSound(document.getElementById('clickSfx'));
+}
+function resetSim(){
+  simPhase=0;simT=0;simQH=0;simQC=0;simW=0;cycleCount=0;simPaused=false;
+  document.getElementById('btnPlay').textContent='⏸ Pause';
+  document.getElementById('btnPlay').className='btn btn-start';
+  updateParams();playSound(document.getElementById('clickSfx'));
+}
+function ambilData(){
+  const row=parseInt(document.getElementById('lkpdRow').value)||1;
+  const TH=simTH,TC=simTC;
+  const VC=getVC(),VD=getVD();
+  const QH=simQH||TH*Math.log(VB/VA)*0.8314;
+  const QC=simQC||TC*Math.log(VC/VD)*0.8314;
+  const W=QH-QC;
+  const eta=(W/QH*100).toFixed(1);
+  const etaC=((1-TC/TH)*100).toFixed(1);
+  const sel=Math.abs(parseFloat(eta)-parseFloat(etaC)).toFixed(2);
+  const r='r'+row;
+  ['TH','TC','QH','QC','W','eta','carnot','sel'].forEach((f,i)=>{
+    const v=[TH,TC,QH.toFixed(1),QC.toFixed(1),W.toFixed(1),eta,etaC,sel][i];
+    const el=document.getElementById(r+'-'+f);if(el)el.value=v;
+  });
+  showToast('✅ Data baris '+row+' tersimpan ke LKPD');
+  playSound(document.getElementById('sndBenar'));
+}
+function showToast(msg){
+  const t=document.getElementById('ambilToast');
+  t.textContent=msg;t.style.display='block';t.style.opacity='1';
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.style.display='none',400);},2400);
+}
+
+// ============ DRAG & DROP ============
+let dragItem=null,touchGhost=null;
+function initDrag(){
+  document.querySelectorAll('.drag-card').forEach(card=>{
+    card.addEventListener('dragstart',e=>{
+      dragItem=card;card.classList.add('dragging');
+      e.dataTransfer.setData('text',card.dataset.id);
+      playSound(document.getElementById('clickSfx'));
+    });
+    card.addEventListener('dragend',()=>{card.classList.remove('dragging');dragItem=null;});
+    card.addEventListener('touchstart',e=>{
+      if(card.classList.contains('placed'))return;
+      dragItem=card;card.classList.add('touch-grabbing');
+      touchGhost=card.cloneNode(true);
+      touchGhost.style.cssText='position:fixed;z-index:99999;opacity:.8;pointer-events:none;width:'+card.offsetWidth+'px;';
+      document.body.appendChild(touchGhost);
+      const t=e.touches[0];
+      touchGhost.style.left=(t.clientX-card.offsetWidth/2)+'px';
+      touchGhost.style.top=(t.clientY-card.offsetHeight/2)+'px';
+    },{passive:true});
+    card.addEventListener('touchmove',e=>{
+      if(!touchGhost)return;
+      const t=e.touches[0];
+      touchGhost.style.left=(t.clientX-dragItem.offsetWidth/2)+'px';
+      touchGhost.style.top=(t.clientY-dragItem.offsetHeight/2)+'px';
+    },{passive:true});
+    card.addEventListener('touchend',e=>{
+      if(!dragItem||!touchGhost)return;
+      touchGhost.remove();touchGhost=null;
+      dragItem.classList.remove('touch-grabbing');
+      const t=e.changedTouches[0];
+      const el=document.elementFromPoint(t.clientX,t.clientY);
+      const zone=el&&el.closest('.drop-zone');
+      if(zone)dropItem(dragItem,zone);
+      dragItem=null;
+    });
+  });
+  document.querySelectorAll('.drop-zone').forEach(zone=>{
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
+    zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');if(dragItem)dropItem(dragItem,zone);});
+  });
+}
+const mejaInfo={
+  'silinder':'Silinder menampung gas kerja dalam proses termodinamika siklus Carnot.',
+  'piston':'Piston bergerak bebas memungkinkan perubahan volume gas pada setiap proses.',
+  'termometer':'Termometer mengukur suhu gas dalam Kelvin (K) pada setiap fase siklus.',
+  'manometer':'Manometer membaca tekanan gas untuk menggambar diagram P-V.',
+  'kalorimeter':'Kalorimeter mengukur kalor yang diserap (QH) dan dilepas (QC) gas.',
+  'kalkulator':'Kalkulator digunakan menghitung efisiensi: η = 1 − TC/TH.',
+  'gas-ideal':'Gas ideal (monoatomik) adalah fluida kerja mesin Carnot ideal.',
+  'sumber-panas':'Reservoir panas (TH) menyuplai kalor QH ke gas pada suhu konstan.',
+  'reservoir-dingin':'Reservoir dingin (TC) menerima kalor QC dari gas pada suhu konstan.',
+  'insulator':'Insulator memastikan tidak ada pertukaran kalor pada proses adiabatik (Q=0).',
+};
+function dropItem(card,zone){
+  if(card.classList.contains('placed'))return;
+  if(card.dataset.type!==zone.dataset.accept){showToast('⚠ Item salah zona!');playSound(document.getElementById('sndSalah'));return;}
+  const hint=zone.querySelector('.drop-hint');if(hint)hint.style.display='none';
+  const clone=card.cloneNode(true);
+  clone.classList.remove('touch-grabbing','dragging');
+  clone.style.cursor='default';clone.draggable=false;
+  zone.appendChild(clone);
+  card.classList.add('placed');
+  playSound(document.getElementById('sndBenar'));
+  const info=mejaInfo[card.dataset.id];
+  if(info){document.getElementById('catatanMeja').style.display='block';document.getElementById('catatanText').textContent=info;}
+}
+function resetMeja(){
+  document.querySelectorAll('.drag-card').forEach(c=>c.classList.remove('placed'));
+  ['dropAlat','dropBahan'].forEach(id=>{
+    const z=document.getElementById(id);
+    Array.from(z.children).forEach(c=>{if(!c.classList.contains('drop-hint'))c.remove();});
+    const h=z.querySelector('.drop-hint');if(h)h.style.display='flex';
+  });
+  document.getElementById('catatanMeja').style.display='none';
+  playSound(document.getElementById('clickSfx'));
+}
+
+// ============ LKPD DOWNLOAD ============
+function downloadExcel(){
+  if(!window.XLSX){showToast('⚠ Library Excel belum siap');return;}
+  const nama=document.getElementById('lkpd-nama').value||'Siswa';
+  const kelas=document.getElementById('lkpd-kelas').value||'–';
+  const tgl=document.getElementById('lkpd-tanggal').value||'–';
+  const ws_data=[
+    ['LKPD SIKLUS CARNOT – Lab Virtual Ruang Murid'],
+    ['Nama:',nama,'Kelas:',kelas,'Tanggal:',tgl],
+    [],
+    ['No','TH(K)','TC(K)','QH(J)','QC(J)','W(J)','η hitung(%)','η Carnot(%)','Selisih(%)'],
+    ...[1,2,3,4,5,6].map(i=>{
+      const r='r'+i;
+      return [i,
+        (document.getElementById(r+'-TH')||{value:''}).value,
+        (document.getElementById(r+'-TC')||{value:''}).value,
+        (document.getElementById(r+'-QH')||{value:''}).value,
+        (document.getElementById(r+'-QC')||{value:''}).value,
+        (document.getElementById(r+'-W')||{value:''}).value,
+        (document.getElementById(r+'-eta')||{value:''}).value,
+        (document.getElementById(r+'-carnot')||{value:''}).value,
+        (document.getElementById(r+'-sel')||{value:''}).value];
+    }),
+    [],
+    ['Diskusi 1:',document.getElementById('lkpd-d1').value||'–'],
+    ['Diskusi 2:',document.getElementById('lkpd-d2').value||'–'],
+    ['Diskusi 3:',document.getElementById('lkpd-d3').value||'–'],
+    ['Diskusi 4:',document.getElementById('lkpd-d4').value||'–'],
+    [],
+    ['Kesimpulan:',document.getElementById('lkpd-kesimpulan').value||'–']
+  ];
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(ws_data);
+  ws['!cols']=[{wch:6},{wch:12},{wch:12},{wch:12},{wch:12},{wch:10},{wch:14},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'LKPD Carnot');
+  XLSX.writeFile(wb,'LKPD_Siklus_Carnot_'+nama.replace(/\s+/g,'_')+'.xlsx');
+}
+function downloadPDF(){
+  if(!window.jspdf){showToast('⚠ PDF library belum siap');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const nama=document.getElementById('lkpd-nama').value||'Siswa';
+  const kelas=document.getElementById('lkpd-kelas').value||'–';
+  const tgl=document.getElementById('lkpd-tanggal').value||'–';
+  doc.setFont('helvetica','bold');doc.setFontSize(14);
+  doc.text('LKPD – Lab Virtual Siklus Carnot',105,14,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(10);
+  doc.text('Nama: '+nama+'   Kelas: '+kelas+'   Tanggal: '+tgl,14,24);
+  doc.line(14,27,196,27);
+  let y=34;
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Data Percobaan:',14,y);y+=5;
+  doc.autoTable({startY:y,
+    head:[['No','TH(K)','TC(K)','QH(J)','QC(J)','W(J)','η hit(%)','η Carnot(%)','Selisih']],
+    body:[1,2,3,4,5,6].map(i=>{const r='r'+i;
+      return [i,
+        document.getElementById(r+'-TH').value||'–',
+        document.getElementById(r+'-TC').value||'–',
+        document.getElementById(r+'-QH').value||'–',
+        document.getElementById(r+'-QC').value||'–',
+        document.getElementById(r+'-W').value||'–',
+        document.getElementById(r+'-eta').value||'–',
+        document.getElementById(r+'-carnot').value||'–',
+        document.getElementById(r+'-sel').value||'–'];
+    }),
+    theme:'grid',styles:{fontSize:8},
+    headStyles:{fillColor:[160,0,60]},margin:{left:14,right:14}});
+  y=doc.lastAutoTable.finalY+8;
+  doc.setFont('helvetica','bold');doc.text('Kesimpulan:',14,y);y+=6;
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  const lines=doc.splitTextToSize(document.getElementById('lkpd-kesimpulan').value||'–',180);
+  doc.text(lines,14,y);
+  doc.save('LKPD_Siklus_Carnot_'+nama.replace(/\s+/g,'_')+'.pdf');
+}
+function resetLKPD(){
+  if(!confirm('Reset seluruh data LKPD?'))return;
+  ['nama','kelas','kelompok','tujuan','d1','d2','d3','d4','kesimpulan'].forEach(f=>{
+    const el=document.getElementById('lkpd-'+f);if(el)el.value='';
+  });
+  [1,2,3,4,5,6].forEach(i=>{
+    ['TH','TC','QH','QC','W','eta','carnot','sel'].forEach(f=>{
+      const el=document.getElementById('r'+i+'-'+f);if(el)el.value='';
+    });
+  });
+  showToast('✅ LKPD direset');playSound(document.getElementById('clickSfx'));
+}
+
+// ============ KEHIDUPAN PAGINATION ============
+let kehidupanCurrentPage = 1;
+const kehidupanTotalPages = 2;
+function kehidupanNav(dir) {
+  const newPage = kehidupanCurrentPage + dir;
+  if (newPage < 1 || newPage > kehidupanTotalPages) return;
+  document.getElementById('kehidupan-pg-' + kehidupanCurrentPage).classList.remove('active');
+  kehidupanCurrentPage = newPage;
+  document.getElementById('kehidupan-pg-' + kehidupanCurrentPage).classList.add('active');
+  document.getElementById('kehidupan-page-indicator').textContent = kehidupanCurrentPage + ' / ' + kehidupanTotalPages;
+  playSound(document.getElementById('clickSfx'));
+}
+
+// ============ LKPD PAGINATION ============
+let lkpdCurrentPage = 1;
+const lkpdTotalPages = 4;
+function lkpdNav(dir) {
+  const newPage = lkpdCurrentPage + dir;
+  if (newPage < 1 || newPage > lkpdTotalPages) return;
+  document.getElementById('lkpd-pg-' + lkpdCurrentPage).classList.remove('active');
+  lkpdCurrentPage = newPage;
+  document.getElementById('lkpd-pg-' + lkpdCurrentPage).classList.add('active');
+  document.getElementById('lkpd-page-indicator').textContent = lkpdCurrentPage + ' / ' + lkpdTotalPages;
+  const prevBtn = document.getElementById('lkpd-prev-btn');
+  const nextBtn = document.getElementById('lkpd-next-btn');
+  if (prevBtn) prevBtn.style.opacity = lkpdCurrentPage === 1 ? '0.4' : '1';
+  if (nextBtn) nextBtn.style.opacity = lkpdCurrentPage === lkpdTotalPages ? '0.4' : '1';
+  playSound(document.getElementById('clickSfx'));
+}
+
+// ============ TEORI PAGINATION ============
+let teoriCurrentPage = 1;
+const teoriTotalPages = 2;
+function teoriNav(dir) {
+  const newPage = teoriCurrentPage + dir;
+  if (newPage < 1 || newPage > teoriTotalPages) return;
+  document.getElementById('teori-pg-' + teoriCurrentPage).classList.remove('active');
+  teoriCurrentPage = newPage;
+  document.getElementById('teori-pg-' + teoriCurrentPage).classList.add('active');
+  document.getElementById('teori-page-indicator').textContent = teoriCurrentPage + ' / ' + teoriTotalPages;
+  playSound(document.getElementById('clickSfx'));
+}
+
+// ============ QUIZ ============
+const quizData=[
+  {q:'Siklus Carnot terdiri dari berapa proses termodinamika?',type:'mc',
+   opts:['A. 2 proses','B. 3 proses','C. 4 proses','D. 5 proses','E. 6 proses'],ans:2,
+   fb:'Jawaban C. Siklus Carnot terdiri dari 4 proses: ① Ekspansi Isotermal, ② Ekspansi Adiabatik, ③ Kompresi Isotermal, ④ Kompresi Adiabatik.'},
+  {q:'Rumus efisiensi mesin Carnot ideal (suhu dalam Kelvin) adalah...',type:'mc',
+   opts:['A. η = TC/TH','B. η = 1 − TH/TC','C. η = 1 − TC/TH','D. η = (TC−TH)/TH','E. η = W/TC'],ans:2,
+   fb:'Jawaban C. η_Carnot = 1 − TC/TH, dengan TC = suhu reservoir dingin dan TH = suhu sumber panas (dalam Kelvin).'},
+  {q:'Mesin Carnot beroperasi antara TH = 600 K dan TC = 300 K. Efisiensinya adalah...',type:'mc',
+   opts:['A. 25%','B. 33%','C. 50%','D. 75%','E. 100%'],ans:2,
+   fb:'Jawaban C. η = 1 − TC/TH = 1 − 300/600 = 0,50 = 50%.'},
+  {q:'Pada proses ekspansi adiabatik dalam siklus Carnot, nilai kalor yang berpindah (Q) adalah...',type:'mc',
+   opts:['A. Q = QH','B. Q = QC','C. Q = W','D. Q = 0','E. Q = ΔU'],ans:3,
+   fb:'Jawaban D. Proses adiabatik berarti tidak ada pertukaran kalor dengan lingkungan: Q = 0. Perubahan energi seluruhnya menjadi usaha.'},
+  {q:'Teorema Carnot menyatakan bahwa efisiensi mesin nyata dibandingkan mesin Carnot ideal adalah...',type:'mc',
+   opts:['A. Selalu lebih besar','B. Selalu sama','C. Selalu lebih kecil atau sama','D. Tergantung jenis bahan bakar','E. Tidak bisa dibandingkan'],ans:2,
+   fb:'Jawaban C. η_nyata ≤ η_Carnot karena adanya proses ireversibel (gesekan, konduksi kalor) pada mesin nyata.'},
+  {q:'Jika suhu sumber panas TH dinaikkan sementara TC tetap, apa yang terjadi pada efisiensi Carnot?',type:'mc',
+   opts:['A. Efisiensi turun','B. Efisiensi tetap','C. Efisiensi naik','D. Efisiensi menjadi nol','E. Tidak bisa ditentukan'],ans:2,
+   fb:'Jawaban C. η = 1 − TC/TH. Jika TH naik, rasio TC/TH mengecil, sehingga nilai (1 − TC/TH) meningkat → efisiensi NAIK.'},
+  {q:'Pada siklus Carnot reversibel, perubahan entropi total sistem + lingkungan adalah...',type:'mc',
+   opts:['A. ΔS > 0','B. ΔS = 0','C. ΔS < 0','D. ΔS = QH/TH','E. ΔS = QC/TC'],ans:1,
+   fb:'Jawaban B. Siklus Carnot adalah proses reversibel ideal. ΔS_total = 0 untuk semua proses reversibel.'},
+  {q:'Koefisien performa (COP) refrigerator Carnot dengan TC = 250 K dan TH = 300 K adalah...',type:'mc',
+   opts:['A. 1','B. 2','C. 3','D. 5','E. 6'],ans:3,
+   fb:'Jawaban D. COP = TC/(TH−TC) = 250/(300−250) = 250/50 = 5.'},
+  {q:'Efisiensi 100% pada mesin kalor secara teori dapat dicapai jika reservoir dingin bersuhu...',type:'mc',
+   opts:['A. 0 °C','B. −273 °C','C. 0 Kelvin','D. 100 Kelvin','E. Tidak pernah bisa tercapai'],ans:2,
+   fb:'Jawaban C. η = 1 − TC/TH = 1 − 0/TH = 100% jika TC = 0 K. Namun Hukum III Termodinamika menyatakan 0 K tidak dapat dicapai.'},
+  {q:'Mesin Carnot menyerap kalor QH = 1000 J dan membuang QC = 400 J. Usaha yang dihasilkan adalah...',type:'mc',
+   opts:['A. 400 J','B. 500 J','C. 600 J','D. 1000 J','E. 1400 J'],ans:2,
+   fb:'Jawaban C. W = QH − QC = 1000 − 400 = 600 J (Hukum Pertama Termodinamika).'}
+];
+let qCurrent=0,qAnswers=[];
+function initQuiz(){
+  qAnswers=new Array(quizData.length).fill(null);
+  const prog=document.getElementById('qprog');prog.innerHTML='';
+  quizData.forEach((_,i)=>{
+    const dot=document.createElement('button');
+    dot.className='qprog-dot'+(i===0?' current':'');
+    dot.textContent=i+1;dot.onclick=()=>goToQ(i);
+    prog.appendChild(dot);
+  });
+  renderQ(0);
+}
+function renderQ(idx){
+  qCurrent=idx;
+  const q=quizData[idx];
+  const isAns=qAnswers[idx]!==null;
+  const card=document.getElementById('qcard');
+  card.innerHTML=`
+    <div class="qnum">SOAL ${idx+1} / ${quizData.length}</div>
+    <span class="qtype-badge badge-mc">Pilihan Ganda (A–E)</span>
+    <div class="qtext">${q.q}</div>
+    <ul class="opts">
+      ${q.opts.map((o,i)=>{const ltr=String.fromCharCode(65+i);const cls='opt'+(qAnswers[idx]===i?' sel':'')+(isAns&&i===q.ans?' correct':'')+(isAns&&qAnswers[idx]===i&&i!==q.ans?' wrong':'');const fn=isAns?'':`selectOpt(${idx},${i})`;const st=isAns?'cursor:default;':'';const txt=o.replace(/^[A-E]\.\s*/,'');return `<li class="${cls}" onclick="${fn}" style="${st}"><span class="opt-letter">${ltr}</span><span class="opt-text">${txt}</span></li>`;}).join('')}
+    </ul>
+    <div class="qfb${isAns?' on':''}${isAns?(qAnswers[idx]===q.ans?' ok':' bad'):''}">${q.fb}</div>`;
+  document.querySelectorAll('.qprog-dot').forEach((dot,i)=>{
+    dot.className='qprog-dot'+(i===idx?' current':(qAnswers[i]!==null?' answered':''));
+  });
+  const foot=document.getElementById('qfoot');foot.innerHTML='';
+  if(idx>0){const b=document.createElement('button');b.className='btn-qnav btn-prev';b.textContent='← Sebelum';b.onclick=()=>goToQ(idx-1);foot.appendChild(b);}
+  const ctr=document.createElement('span');ctr.className='qcounter';ctr.textContent=`${qAnswers.filter(a=>a!==null).length}/${quizData.length} dijawab`;foot.appendChild(ctr);
+  if(idx<quizData.length-1){const b=document.createElement('button');b.className='btn-qnav btn-next';b.textContent='Lanjut →';b.onclick=()=>goToQ(idx+1);foot.appendChild(b);}
+  if(qAnswers.every(a=>a!==null)){const b=document.createElement('button');b.className='btn-qnav btn-submit-q';b.textContent='🏁 Lihat Skor';b.onclick=showScore;foot.appendChild(b);}
+}
+function selectOpt(qi,oi){
+  if(qAnswers[qi]!==null)return;
+  qAnswers[qi]=oi;
+  const correct=oi===quizData[qi].ans;
+  playSound(document.getElementById(correct?'sndBenar':'sndSalah'));
+  renderQ(qi);
+}
+function goToQ(idx){renderQ(idx);}
+function resetQuiz(){qAnswers=new Array(quizData.length).fill(null);renderQ(0);playSound(document.getElementById('clickSfx'));}
+function showScore(){
+  const score=qAnswers.filter((a,i)=>a===quizData[i].ans).length;
+  const pct=Math.round(score/quizData.length*100);
+  document.getElementById('scoreBig').textContent=score;
+  document.getElementById('scorePct').textContent='/ '+quizData.length+' soal benar';
+  document.getElementById('scoreSub').textContent='Nilai kamu: '+pct+'%';
+  const grade=pct>=90?'A – Luar Biasa! 🌟':pct>=75?'B – Bagus! 👍':pct>=60?'C – Cukup Baik 🙂':pct>=45?'D – Perlu Belajar Lagi 😐':'E – Ulangi Materi 📚';
+  document.getElementById('scoreGrade').textContent=grade;
+  document.getElementById('scoreGrade').style.color=pct>=75?'#007040':pct>=60?'#b06000':'#c0003c';
+  document.getElementById('scoreOverlay').classList.add('on');
+  if(pct===100)playSound(document.getElementById('sndBerhasil'));
+}
+</script>
+</div><!-- end wrapper-169 -->
+</body>
+</html>
